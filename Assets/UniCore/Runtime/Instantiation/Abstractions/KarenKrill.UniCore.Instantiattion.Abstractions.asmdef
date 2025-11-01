@@ -1,0 +1,14 @@
+{
+    "name": "KarenKrill.UniCore.Instantiattion.Abstractions",
+    "rootNamespace": "KarenKrill.UniCore.Instantiattion.Abstractions",
+    "references": [],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

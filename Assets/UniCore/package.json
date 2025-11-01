@@ -1,0 +1,17 @@
+{
+  "name": "com.karenkrill.unicore",
+  "version": "1.0.0",
+  "displayName": "UniCore",
+  "description": "A set of libraries that speed up Unity project development",
+  "unity": "6000.0",
+  "unityRelease": "47f1",
+  "documentationUrl": "https://github.com/KarenKrill/UniCore/blob/main/README.md",
+  "licensesUrl": "https://github.com/KarenKrill/UniCore/blob/main/LICENSE",
+  "keywords": [ "tool", "utility" ],
+  "category": "Tool",
+  "author": {
+    "name": "KarenKrill",
+    "email": "vampart1997@gmail.com",
+    "url": "https://github.com/KarenKrill"
+  }
+}

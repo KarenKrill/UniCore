@@ -1,0 +1,17 @@
+{
+    "name": "KarenKrill.UniCore.Storytelling",
+    "rootNamespace": "KarenKrill.UniCore.Storytelling",
+    "references": [
+        "GUID:f2b1cb4b2bc9d9a4c9b3de62a541d591",
+        "GUID:760c2e9496ca26e4d8f30deca2d52b53"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}
