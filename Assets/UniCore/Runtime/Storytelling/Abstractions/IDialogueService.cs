@@ -1,6 +1,6 @@
 using System;
 
-namespace KarenKrill.Storytelling.Abstractions
+namespace KarenKrill.UniCore.Storytelling.Abstractions
 {
     public interface IDialogueService
     {

@@ -2,9 +2,8 @@
 
 using System;
 using System.Collections.Generic;
-using System.Linq;
 
-namespace KarenKrill.Storytelling.Abstractions
+namespace KarenKrill.UniCore.Storytelling.Abstractions
 {
     public class DialogueState
     {

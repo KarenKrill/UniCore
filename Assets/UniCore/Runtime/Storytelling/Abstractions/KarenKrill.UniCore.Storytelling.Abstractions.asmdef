@@ -1,6 +1,6 @@
 {
-    "name": "KarenKrill.Storytelling.Abstractions",
-    "rootNamespace": "KarenKrill.Storytelling.Abstractions",
+    "name": "KarenKrill.UniCore.Storytelling.Abstractions",
+    "rootNamespace": "KarenKrill.UniCore.Storytelling.Abstractions",
     "references": [],
     "includePlatforms": [],
     "excludePlatforms": [],
