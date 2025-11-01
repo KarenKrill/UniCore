@@ -1,14 +1,16 @@
 using UnityEngine;
 
 using KarenKrill.UniCore.Input.Abstractions;
+using KarenKrill.UniCore.Interactions.Abstractions;
 
 namespace KarenKrill.UniCore.Interactions
 {
     public class RaycastInteractionDetector : RaycastInteractionDetectorBase
     {
-        public void Initialize(IBasicPlayerActionsProvider playerActionsProvider)
+        public void Initialize(IBasicPlayerActionsProvider playerActionsProvider, IInteractionTargetRegistry interactionTargetRegistry)
         {
             _playerActionsProvider = playerActionsProvider;
+            base.Initialize(interactionTargetRegistry);
         }
 
         protected override void InputSubscribe()
