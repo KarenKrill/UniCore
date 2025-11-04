@@ -70,17 +70,18 @@ namespace KarenKrill.UniCore.Interactions
 
         private void OnTargetFocused(IInteractionTarget interactionTarget, IInteractor interactor)
         {
-            Debug.Log("Target focused");
-            _lastAvailableInteractionTarget?.Interactable.SetInteractionAvailability(_lastInteractor, false);
-            _lastInteractor?.SetInteractionAvailability(_lastAvailableInteractionTarget?.Interactable, false);
-            _lastAvailableInteractionTarget = interactionTarget;
-            _lastInteractor = interactor;
+            if (_lastAvailableInteractionTarget != interactionTarget || _lastInteractor != interactor)
+            {
+                _lastAvailableInteractionTarget?.Interactable.SetInteractionAvailability(_lastInteractor, false);
+                _lastInteractor?.SetInteractionAvailability(_lastAvailableInteractionTarget?.Interactable, false);
+                _lastAvailableInteractionTarget = interactionTarget;
+                _lastInteractor = interactor;
+            }
             interactionTarget.Interactable.SetInteractionAvailability(interactor, true);
             interactor.SetInteractionAvailability(_lastAvailableInteractionTarget?.Interactable, true);
         }
         private void OnTargetLostFocus()
         {
-            Debug.Log("Target lost focus");
             // target not found:
             _lastAvailableInteractionTarget?.Interactable.SetInteractionAvailability(_lastInteractor, false);
             _lastInteractor?.SetInteractionAvailability(_lastAvailableInteractionTarget?.Interactable, false);
