@@ -23,11 +23,17 @@ namespace KarenKrill.UniCore.Interactions
         }
         public void SetInteractionAvailability(IInteractor interactor, bool available = true)
         {
-            OnInteractionAvailabilityChanged(available);
-            InteractionAvailabilityChanged?.Invoke(interactor, available);
+            if (_interactionAvailable?.Equals(available) ?? true)
+            {
+                _interactionAvailable = available;
+                OnInteractionAvailabilityChanged(available);
+                InteractionAvailabilityChanged?.Invoke(interactor, available);
+            }
         }
 
         protected abstract bool OnInteraction(IInteractor interactor);
         protected abstract void OnInteractionAvailabilityChanged(bool available);
+
+        private bool? _interactionAvailable = null;
     }
 }
