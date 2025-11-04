@@ -23,7 +23,7 @@ namespace KarenKrill.UniCore.Interactions
         }
         public void SetInteractionAvailability(IInteractor interactor, bool available = true)
         {
-            if (_interactionAvailable?.Equals(available) ?? true)
+            if ((!_interactionAvailable?.Equals(available)) ?? true)
             {
                 _interactionAvailable = available;
                 OnInteractionAvailabilityChanged(available);
