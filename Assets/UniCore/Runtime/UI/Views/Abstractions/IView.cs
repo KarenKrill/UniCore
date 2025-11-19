@@ -3,8 +3,8 @@
     public interface IView
     {
         bool Interactable { get; set; }
-        void Show();
-        void Close();
+        void Show(bool smoothly = true);
+        void Close(bool smoothly = true);
         void SetFocus(bool isFocused);
     }
 }

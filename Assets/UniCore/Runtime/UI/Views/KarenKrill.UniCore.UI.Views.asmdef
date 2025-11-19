@@ -2,6 +2,7 @@
     "name": "KarenKrill.UniCore.UI.Views",
     "rootNamespace": "KarenKrill.UniCore.UI.Views",
     "references": [
+        "GUID:f51ebe6a0ceec4240a699833d6309b23",
         "GUID:9ce69da7243473a4f8e5dd1e9dbae22d",
         "GUID:7a46791a36c29db4382df4ea59e1f085"
     ],
