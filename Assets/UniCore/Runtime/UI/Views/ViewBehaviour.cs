@@ -98,7 +98,7 @@ namespace KarenKrill.UniCore.UI.Views
                 await UniTask.SwitchToMainThread();
 #endif
                 _canvasGroup.alpha = Mathf.Clamp01(progress);
-                progress += Time.unscaledDeltaTime;
+                elapsedTime += Time.unscaledDeltaTime;
 #if !UNITY_WEBGL
                 await UniTask.SwitchToThreadPool();
 #endif
@@ -116,7 +116,7 @@ namespace KarenKrill.UniCore.UI.Views
                 await UniTask.SwitchToMainThread();
 #endif
                 _canvasGroup.alpha = 1 - Mathf.Clamp01(progress);
-                progress += Time.unscaledDeltaTime;
+                elapsedTime += Time.unscaledDeltaTime;
 #if !UNITY_WEBGL
                 await UniTask.SwitchToThreadPool();
 #endif
