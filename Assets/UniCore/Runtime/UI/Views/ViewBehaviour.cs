@@ -1,51 +1,78 @@
-﻿#nullable enable
+﻿using System.Threading;
 
-using System.Threading;
-
+using UnityEngine;
 using UnityEngine.EventSystems;
 
 using Cysharp.Threading.Tasks;
-
-using UnityEngine;
 
 namespace KarenKrill.UniCore.UI.Views
 {
     using Abstractions;
 
-    [RequireComponent(typeof(CanvasGroup))]
     public abstract class ViewBehaviour : MonoBehaviour, IView
     {
         public bool Interactable { get => _canvasGroup.interactable; set => _canvasGroup.interactable = value; }
 
         public virtual void Show(bool smoothly = true)
         {
-            OnShow();
-            if (smoothly)
+            // No need smooth showing if duration is zero or application is quitting
+            if (smoothly && !_isQuiting && _fadeInDuration > float.Epsilon)
             {
-                _canvasGroup.alpha = 0;
-                if (_showCts is null)
+                // Start showing only if not already showing and if not fully visible
+                if (_showCts is null && (!gameObject.activeInHierarchy || _canvasGroup.alpha + float.Epsilon < 1f))
                 {
                     _closeCts?.Cancel();
                     _showCts = new();
-                    ShowSmoothlyAsync(_showCts.Token).ContinueWith(() =>
+                    var duration = _fadeInDuration;
+                    if (gameObject.activeInHierarchy)
                     {
-                        _showCts?.Dispose();
+                        if (_canvasGroup.alpha > float.Epsilon)
+                        { // Already partially visible
+                            // Adjust duration based on current alpha
+                            duration = Mathf.Lerp(0, duration, 1 - _canvasGroup.alpha);
+                        }
+                    }
+                    else if (!_isQuiting)
+                    {
+                        // Starting from invisible if not active
+                        _canvasGroup.alpha = 0;
+                    }
+                    OnShow();
+                    SmoothlyAlphaTransitionAsync(_canvasGroup.alpha, 1f, duration, _showCts.Token).ContinueWith(() =>
+                    {
+                        _showCts.Dispose();
                         _showCts = null;
                     }).Forget();
                 }
             }
+            else
+            {
+                OnShow();
+            }
         }
         public virtual void Close(bool smoothly = true)
         {
-            if (smoothly)
+            // No need smooth closing if duration is zero or application is quitting
+            if (smoothly && !_isQuiting && _fadeOutDuration > float.Epsilon)
             {
-                if (_closeCts is null)
+                // Start closing only if not already closing and if currently active
+                if (_closeCts is null && gameObject.activeInHierarchy)
                 {
                     _showCts?.Cancel();
                     _closeCts = new();
-                    CloseSmoothlyAsync(_closeCts.Token).ContinueWith(() =>
+                    var duration = _fadeOutDuration;
+                    if (Mathf.Abs(1f - _canvasGroup.alpha) > float.Epsilon)
+                    { // Already partially invisible
+                        // Adjust duration based on current alpha
+                        duration = Mathf.Lerp(0, duration, _canvasGroup.alpha);
+                    }
+                    SmoothlyAlphaTransitionAsync(_canvasGroup.alpha, 0, duration, _closeCts.Token).ContinueWith(() =>
                     {
-                        _closeCts?.Dispose();
+                        if (!_closeCts.IsCancellationRequested)
+                        {
+                            OnClose();
+                        }
+                        _closeCts.Dispose();
                         _closeCts = null;
                     }).Forget();
                 }
@@ -68,64 +95,84 @@ namespace KarenKrill.UniCore.UI.Views
         protected GameObject DefaultFocusObject;
 
         [SerializeField]
-        private float _fadeDuration = 1f;
         private CanvasGroup _canvasGroup;
-        private CancellationTokenSource? _showCts = null;
-        private CancellationTokenSource? _closeCts = null;
+        [SerializeField]
+        private float _fadeInDuration = .5f;
+        [SerializeField]
+        private float _fadeOutDuration = .5f;
+        private CancellationTokenSource _showCts = null;
+        private CancellationTokenSource _closeCts = null;
+        private bool _isQuiting = false;
 
-        private void Awake()
+        private void OnApplicationQuit()
         {
-            _canvasGroup = GetComponent<CanvasGroup>();
+            _isQuiting = true;
+            _showCts?.Cancel();
+            _closeCts?.Cancel();
         }
         private void OnShow()
         {
-            gameObject.SetActive(true);
-            SetFocus(true);
+            if (!_isQuiting)
+            {
+                gameObject.SetActive(true);
+                SetFocus(true);
+            }
         }
         private void OnClose()
         {
-            SetFocus(false);
-            gameObject.SetActive(false);
+            if (!_isQuiting)
+            {
+                SetFocus(false);
+                gameObject.SetActive(false);
+            }
         }
-        private async UniTask ShowSmoothlyAsync(CancellationToken cancellationToken)
+        private async UniTask SmoothlyAlphaTransitionAsync(float start, float end, float duration, CancellationToken cancellationToken)
         {
             float elapsedTime = 0f;
             float progress = 0f;
+#if !UNITY_WEBGL
+            await UniTask.SwitchToMainThread();
+#endif
             while (progress < 1f && !cancellationToken.IsCancellationRequested)
             {
-                progress = elapsedTime / _fadeDuration;
-#if !UNITY_WEBGL
-                await UniTask.SwitchToMainThread();
-#endif
-                _canvasGroup.alpha = Mathf.Clamp01(progress);
-                elapsedTime += Time.unscaledDeltaTime;
-#if !UNITY_WEBGL
-                await UniTask.SwitchToThreadPool();
-#endif
-                await UniTask.Yield();
+                progress = elapsedTime / duration;
+                if (!_isQuiting)
+                {
+                    _canvasGroup.alpha = Mathf.Lerp(start, end, progress);
+                    elapsedTime += Time.unscaledDeltaTime;
+                    try
+                    {
+                        await UniTask.Yield(cancellationToken);
+                    }
+                    catch (System.OperationCanceledException) { }
+                }
+            }
+            if (!_isQuiting)
+            {
+                _canvasGroup.alpha = end;
             }
         }
         private async UniTask CloseSmoothlyAsync(CancellationToken cancellationToken)
         {
             float elapsedTime = 0f;
             float progress = 0f;
+#if !UNITY_WEBGL
+            await UniTask.SwitchToMainThread();
+#endif
             while (progress < 1f && !cancellationToken.IsCancellationRequested)
             {
-                progress = elapsedTime / _fadeDuration;
-#if !UNITY_WEBGL
-                await UniTask.SwitchToMainThread();
-#endif
-                _canvasGroup.alpha = 1 - Mathf.Clamp01(progress);
-                elapsedTime += Time.unscaledDeltaTime;
-#if !UNITY_WEBGL
-                await UniTask.SwitchToThreadPool();
-#endif
-                await UniTask.Yield();
+                progress = elapsedTime / _fadeOutDuration;
+                if (!_isQuiting)
+                {
+                    _canvasGroup.alpha = Mathf.Lerp(1f, 0f, progress);
+                    elapsedTime += Time.unscaledDeltaTime;
+                    await UniTask.Yield();
+                }
             }
-#if !UNITY_WEBGL
-            await UniTask.SwitchToThreadPool();
-#endif
-            OnClose();
+            if (!_isQuiting)
+            {
+                OnClose();
+            }
         }
     }
 }
