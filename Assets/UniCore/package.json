@@ -1,6 +1,6 @@
 {
   "name": "com.karenkrill.unicore",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "displayName": "UniCore",
   "description": "A set of libraries that speed up Unity project development",
   "unity": "6000.0",
