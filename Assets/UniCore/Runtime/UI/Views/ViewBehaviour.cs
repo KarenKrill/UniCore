@@ -12,6 +12,7 @@ namespace KarenKrill.UniCore.UI.Views
     public abstract class ViewBehaviour : MonoBehaviour, IView
     {
         public bool Interactable { get => _canvasGroup.interactable; set => _canvasGroup.interactable = value; }
+        public int SortOrder => _sortOrder;
 
         public virtual void Show(bool smoothly = true)
         {
@@ -96,6 +97,8 @@ namespace KarenKrill.UniCore.UI.Views
 
         [SerializeField]
         private CanvasGroup _canvasGroup;
+        [SerializeField]
+        private int _sortOrder = 0;
         [SerializeField]
         private float _fadeInDuration = .5f;
         [SerializeField]
