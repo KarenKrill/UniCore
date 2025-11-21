@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+
 using UnityEngine;
 
 namespace KarenKrill.UniCore.UI.Views
@@ -21,7 +22,13 @@ namespace KarenKrill.UniCore.UI.Views
                     var viewGameObject = Object.Instantiate(viewPrefab, _parentGameObject.transform);
                     viewGameObject.SetActive(false);
                     viewGameObject.name = viewPrefab.name;
-                    return viewGameObject.GetComponent<ViewType>();
+                    var view = viewGameObject.GetComponent<ViewType>();
+                    if (!_sortCache.ContainsKey(view.SortOrder))
+                    {
+                        _sortCache[view.SortOrder] = new();
+                    }
+                    SortViews();
+                    return view;
                 }
             }
             throw new System.InvalidOperationException($"There is no prefab for \"{typeof(ViewType).Name}\" view");
@@ -29,5 +36,29 @@ namespace KarenKrill.UniCore.UI.Views
 
         private readonly GameObject _parentGameObject;
         private readonly List<GameObject> _viewPrefabs = new();
+        private readonly SortedList<int, List<Transform>> _sortCache = new();
+
+        private void SortViews()
+        {
+            foreach(var viewTransforms in _sortCache.Values)
+            {
+                viewTransforms.Clear();
+            }
+            foreach (Transform child in _parentGameObject.transform)
+            {
+                if (child.TryGetComponent<IView>(out var view))
+                {
+                    _sortCache[view.SortOrder].Add(child);
+                }
+            }
+            int index = 0;
+            foreach (var sortInfo in _sortCache)
+            {
+                foreach (var viewTransform in sortInfo.Value)
+                {
+                    viewTransform.SetSiblingIndex(index++);
+                }
+            }
+        }
     }
 }
