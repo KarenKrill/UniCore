@@ -12,7 +12,7 @@
 
         public virtual void Enable()
         {
-            View ??= _viewFactory.Create<T>();
+            View ??= _viewFactory.GetOrCreate<T>();
             Subscribe();
             View.Show();
             _isEnabled = true;
