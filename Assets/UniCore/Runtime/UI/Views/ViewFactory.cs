@@ -33,6 +33,17 @@ namespace KarenKrill.UniCore.UI.Views
             }
             throw new System.InvalidOperationException($"There is no prefab for \"{typeof(ViewType).Name}\" view");
         }
+        public ViewType GetOrCreate<ViewType>() where ViewType : IView
+        {
+            foreach (Transform child in _parentGameObject.transform)
+            {
+                if (child.TryGetComponent<ViewType>(out var existingView))
+                {
+                    return existingView;
+                }
+            }
+            return Create<ViewType>();
+        }
 
         private readonly GameObject _parentGameObject;
         private readonly List<GameObject> _viewPrefabs = new();

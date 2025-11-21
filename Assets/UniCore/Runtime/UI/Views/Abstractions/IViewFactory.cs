@@ -2,5 +2,5 @@
 {
     using Instantiation.Abstractions;
 
-    public interface IViewFactory : IBaseFactory<IView> { }
+    public interface IViewFactory : ICachingBaseFactory<IView> { }
 }
