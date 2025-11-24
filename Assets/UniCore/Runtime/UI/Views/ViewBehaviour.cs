@@ -155,27 +155,5 @@ namespace KarenKrill.UniCore.UI.Views
                 _canvasGroup.alpha = end;
             }
         }
-        private async UniTask CloseSmoothlyAsync(CancellationToken cancellationToken)
-        {
-            float elapsedTime = 0f;
-            float progress = 0f;
-#if !UNITY_WEBGL
-            await UniTask.SwitchToMainThread();
-#endif
-            while (progress < 1f && !cancellationToken.IsCancellationRequested)
-            {
-                progress = elapsedTime / _fadeOutDuration;
-                if (!_isQuiting)
-                {
-                    _canvasGroup.alpha = Mathf.Lerp(1f, 0f, progress);
-                    elapsedTime += Time.unscaledDeltaTime;
-                    await UniTask.Yield();
-                }
-            }
-            if (!_isQuiting)
-            {
-                OnClose();
-            }
-        }
     }
 }
