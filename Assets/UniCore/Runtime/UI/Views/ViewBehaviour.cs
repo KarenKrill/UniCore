@@ -16,14 +16,14 @@ namespace KarenKrill.UniCore.UI.Views
 
         public virtual void Show(bool smoothly = true)
         {
-            // No need smooth showing if duration is zero or application is quitting
-            if (smoothly && !_isQuiting && _fadeInDuration > float.Epsilon)
+            // No need smooth showing if duration is zero
+            if (smoothly && _fadeInDuration > float.Epsilon)
             {
                 // Start showing only if not already showing and if not fully visible
                 if (_showCts is null && (!gameObject.activeInHierarchy || _canvasGroup.alpha + float.Epsilon < 1f))
                 {
                     _closeCts?.Cancel();
-                    _showCts = new();
+                    _showCts = CancellationTokenSource.CreateLinkedTokenSource(destroyCancellationToken, Application.exitCancellationToken);
                     var duration = _fadeInDuration;
                     if (gameObject.activeInHierarchy)
                     {
@@ -33,7 +33,7 @@ namespace KarenKrill.UniCore.UI.Views
                             duration = Mathf.Lerp(0, duration, 1 - _canvasGroup.alpha);
                         }
                     }
-                    else if (!_isQuiting)
+                    else
                     {
                         // Starting from invisible if not active
                         _canvasGroup.alpha = 0;
@@ -53,14 +53,14 @@ namespace KarenKrill.UniCore.UI.Views
         }
         public virtual void Close(bool smoothly = true)
         {
-            // No need smooth closing if duration is zero or application is quitting
-            if (smoothly && !_isQuiting && _fadeOutDuration > float.Epsilon)
+            // No need smooth closing if duration is zero
+            if (smoothly && _fadeOutDuration > float.Epsilon)
             {
                 // Start closing only if not already closing and if currently active
                 if (_closeCts is null && gameObject.activeInHierarchy)
                 {
                     _showCts?.Cancel();
-                    _closeCts = new();
+                    _closeCts = CancellationTokenSource.CreateLinkedTokenSource(destroyCancellationToken, Application.exitCancellationToken);
                     var duration = _fadeOutDuration;
                     if (Mathf.Abs(1f - _canvasGroup.alpha) > float.Epsilon)
                     { // Already partially invisible
@@ -105,29 +105,16 @@ namespace KarenKrill.UniCore.UI.Views
         private float _fadeOutDuration = .5f;
         private CancellationTokenSource _showCts = null;
         private CancellationTokenSource _closeCts = null;
-        private bool _isQuiting = false;
 
-        private void OnApplicationQuit()
-        {
-            _isQuiting = true;
-            _showCts?.Cancel();
-            _closeCts?.Cancel();
-        }
         private void OnShow()
         {
-            if (!_isQuiting)
-            {
-                gameObject.SetActive(true);
-                SetFocus(true);
-            }
+            gameObject.SetActive(true);
+            SetFocus(true);
         }
         private void OnClose()
         {
-            if (!_isQuiting)
-            {
-                SetFocus(false);
-                gameObject.SetActive(false);
-            }
+            SetFocus(false);
+            gameObject.SetActive(false);
         }
         private async UniTask SmoothlyAlphaTransitionAsync(float start, float end, float duration, CancellationToken cancellationToken)
         {
@@ -139,20 +126,23 @@ namespace KarenKrill.UniCore.UI.Views
             while (progress < 1f && !cancellationToken.IsCancellationRequested)
             {
                 progress = elapsedTime / duration;
-                if (!_isQuiting)
+                _canvasGroup.alpha = Mathf.Lerp(start, end, progress);
+                elapsedTime += Time.unscaledDeltaTime;
+                try
                 {
-                    _canvasGroup.alpha = Mathf.Lerp(start, end, progress);
-                    elapsedTime += Time.unscaledDeltaTime;
-                    try
-                    {
-                        await UniTask.Yield(cancellationToken);
-                    }
-                    catch (System.OperationCanceledException) { }
+                    await UniTask.Yield(cancellationToken);
                 }
+                catch (System.OperationCanceledException) { }
             }
-            if (!_isQuiting)
+            if (!cancellationToken.IsCancellationRequested)
             {
                 _canvasGroup.alpha = end;
+            }
+            else
+            {
+                bool isHiding = end < start;
+                var taskType = isHiding ? "hiding" : "showing";
+                Debug.LogWarning($"Smooth {taskType} canceled!");
             }
         }
     }
