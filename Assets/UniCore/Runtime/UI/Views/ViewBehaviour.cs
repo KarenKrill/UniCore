@@ -1,4 +1,5 @@
 ﻿using System.Threading;
+using System.Threading.Tasks;
 
 using UnityEngine;
 using UnityEngine.EventSystems;
@@ -19,35 +20,11 @@ namespace KarenKrill.UniCore.UI.Views
             // No need smooth showing if duration is zero
             if (smoothly && _fadeInDuration > float.Epsilon)
             {
-                // Start showing only if not already showing and if not fully visible
-                if (_showCts is null && (!gameObject.activeInHierarchy || _canvasGroup.alpha + float.Epsilon < 1f))
-                {
-                    _closeCts?.Cancel();
-                    _showCts = CancellationTokenSource.CreateLinkedTokenSource(destroyCancellationToken, Application.exitCancellationToken);
-                    var duration = _fadeInDuration;
-                    if (gameObject.activeInHierarchy)
-                    {
-                        if (_canvasGroup.alpha > float.Epsilon)
-                        { // Already partially visible
-                            // Adjust duration based on current alpha
-                            duration = Mathf.Lerp(0, duration, 1 - _canvasGroup.alpha);
-                        }
-                    }
-                    else
-                    {
-                        // Starting from invisible if not active
-                        _canvasGroup.alpha = 0;
-                    }
-                    OnShow();
-                    SmoothlyAlphaTransitionAsync(_canvasGroup.alpha, 1f, duration, _showCts.Token).ContinueWith(() =>
-                    {
-                        _showCts.Dispose();
-                        _showCts = null;
-                    }).Forget();
-                }
+                ShowSmoothlyAsync().AsUniTask().Forget();
             }
             else
             {
+                _closeCts?.Cancel();
                 OnShow();
             }
         }
@@ -56,31 +33,65 @@ namespace KarenKrill.UniCore.UI.Views
             // No need smooth closing if duration is zero
             if (smoothly && _fadeOutDuration > float.Epsilon)
             {
-                // Start closing only if not already closing and if currently active
-                if (_closeCts is null && gameObject.activeInHierarchy)
-                {
-                    _showCts?.Cancel();
-                    _closeCts = CancellationTokenSource.CreateLinkedTokenSource(destroyCancellationToken, Application.exitCancellationToken);
-                    var duration = _fadeOutDuration;
-                    if (Mathf.Abs(1f - _canvasGroup.alpha) > float.Epsilon)
-                    { // Already partially invisible
-                        // Adjust duration based on current alpha
-                        duration = Mathf.Lerp(0, duration, _canvasGroup.alpha);
-                    }
-                    SmoothlyAlphaTransitionAsync(_canvasGroup.alpha, 0, duration, _closeCts.Token).ContinueWith(() =>
-                    {
-                        if (!_closeCts.IsCancellationRequested)
-                        {
-                            OnClose();
-                        }
-                        _closeCts.Dispose();
-                        _closeCts = null;
-                    }).Forget();
-                }
+                CloseSmoothlyAsync().AsUniTask().Forget();
             }
             else
             {
+                _showCts?.Cancel();
                 OnClose();
+            }
+        }
+        public async Task ShowSmoothlyAsync()
+        {
+            // Start showing only if not already showing and if not fully visible
+            if (_showCts is null && (!gameObject.activeInHierarchy || _canvasGroup.alpha + float.Epsilon < 1f))
+            {
+                _closeCts?.Cancel();
+                _showCts = CancellationTokenSource.CreateLinkedTokenSource(destroyCancellationToken, Application.exitCancellationToken);
+                var duration = _fadeInDuration;
+                if (gameObject.activeInHierarchy)
+                {
+                    if (_canvasGroup.alpha > float.Epsilon)
+                    { // Already partially visible
+                      // Adjust duration based on current alpha
+                        duration = Mathf.Lerp(0, duration, 1 - _canvasGroup.alpha);
+                    }
+                }
+                else
+                {
+                    // Starting from invisible if not active
+                    _canvasGroup.alpha = 0;
+                }
+                OnShow();
+                await SmoothlyAlphaTransitionAsync(_canvasGroup.alpha, 1f, duration, _showCts.Token).ContinueWith(() =>
+                {
+                    _showCts.Dispose();
+                    _showCts = null;
+                });
+            }
+        }
+        public async Task CloseSmoothlyAsync()
+        {
+            // Start closing only if not already closing and if currently active
+            if (_closeCts is null && gameObject.activeInHierarchy)
+            {
+                _showCts?.Cancel();
+                _closeCts = CancellationTokenSource.CreateLinkedTokenSource(destroyCancellationToken, Application.exitCancellationToken);
+                var duration = _fadeOutDuration;
+                if (Mathf.Abs(1f - _canvasGroup.alpha) > float.Epsilon)
+                { // Already partially invisible
+                  // Adjust duration based on current alpha
+                    duration = Mathf.Lerp(0, duration, _canvasGroup.alpha);
+                }
+                await SmoothlyAlphaTransitionAsync(_canvasGroup.alpha, 0, duration, _closeCts.Token).ContinueWith(() =>
+                {
+                    if (!_closeCts.IsCancellationRequested)
+                    {
+                        OnClose();
+                    }
+                    _closeCts.Dispose();
+                    _closeCts = null;
+                });
             }
         }
         public virtual void SetFocus(bool isFocused)
