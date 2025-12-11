@@ -1,4 +1,6 @@
-﻿namespace KarenKrill.UniCore.UI.Views.Abstractions
+﻿using System.Threading.Tasks;
+
+namespace KarenKrill.UniCore.UI.Views.Abstractions
 {
     public interface IView
     {
@@ -7,6 +9,8 @@
 
         void Show(bool smoothly = true);
         void Close(bool smoothly = true);
+        Task ShowSmoothlyAsync();
+        Task CloseSmoothlyAsync();
         void SetFocus(bool isFocused);
     }
 }
