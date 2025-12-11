@@ -48,6 +48,7 @@ namespace KarenKrill.UniCore.UI.Views
             }
             else
             {
+                _closeCts?.Cancel();
                 OnShow();
             }
         }
@@ -80,6 +81,7 @@ namespace KarenKrill.UniCore.UI.Views
             }
             else
             {
+                _showCts?.Cancel();
                 OnClose();
             }
         }
