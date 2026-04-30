@@ -18,12 +18,13 @@ namespace KarenKrill.UniCore.Movement
 
         public void Update(SlopeSlideMovementContext ctx)
         {
-            if (Physics.Raycast(ctx.TargetPosition, Vector3.down, out var hitInfo))
+            if (Physics.RaycastNonAlloc(ctx.TargetPosition, Vector3.down, _downRaycastHits) > 0)
             {
-                float slopeAngle = Vector3.Angle(hitInfo.normal, Vector3.up);
+                var rayHit = _downRaycastHits[0];
+                float slopeAngle = Vector3.Angle(rayHit.normal, Vector3.up);
                 if (slopeAngle >= _options.SlopeLimitDegrees)
                 {
-                    _state.Velocity = Vector3.ProjectOnPlane(new Vector3(0, ctx.TargetFallSpeed, 0), hitInfo.normal);
+                    _state.Velocity = Vector3.ProjectOnPlane(new Vector3(0, ctx.TargetFallSpeed, 0), rayHit.normal);
                     _state.IsSliding = true;
                     return;
                 }
@@ -42,5 +43,6 @@ namespace KarenKrill.UniCore.Movement
 
         private readonly SlopeSlideMovementState _state = new();
         private readonly SlopeSlideMovementOptions _options;
+        private readonly RaycastHit[] _downRaycastHits = new RaycastHit[1];
     }
 }
