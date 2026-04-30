@@ -186,21 +186,21 @@ namespace KarenKrill.UniCore.Movement
             // Direction usings
             bool isMoving = direction != Vector3.zero;
             bool isLooking = _lookDirection != Vector3.zero;
-            if (isMoving || isLooking)
+            if (_thirdPerson)
             {
-                if (_thirdPerson)
+                if (isMoving)
                 {
                     var directionLookRotation = Quaternion.LookRotation(direction, Vector3.up);
                     var characterRotation = _characterController.transform.rotation;
                     var rotation = Quaternion.RotateTowards(characterRotation, directionLookRotation, _rotationDegreeSpeed * Time.deltaTime);
                     _characterController.transform.rotation = rotation;
                 }
-                else
+            }
+            else if (isMoving || isLooking)
                 {
                     var rotation = Quaternion.RotateTowards(_characterController.transform.rotation, cameraRelativeQuaternion, 360);
                     _characterController.transform.rotation = rotation;
                 }
-            }
 
             if (_animator != null)
             {
