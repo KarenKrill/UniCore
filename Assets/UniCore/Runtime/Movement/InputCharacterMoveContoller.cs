@@ -35,7 +35,6 @@ namespace KarenKrill.UniCore.Movement
         }
         protected override void Update()
         {
-            base.Update();
             MoveDirection = new Vector3(_playerActionsProvider.LastMoveDelta.x, 0, _playerActionsProvider.LastMoveDelta.y);
             LookDirection = _playerActionsProvider.LastLookDelta;
             if (IsPulsedUp)
@@ -49,6 +48,7 @@ namespace KarenKrill.UniCore.Movement
                     GravityModifier = 0.5f;
                 }
             }
+            base.Update();
         }
 
         [SerializeField]
