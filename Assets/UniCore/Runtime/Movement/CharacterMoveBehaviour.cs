@@ -12,7 +12,7 @@ namespace KarenKrill.UniCore.Movement
         /// <summary>Range: [0..1]</summary>
         public float GravityModifier { get => _gravityModifier; set => _gravityModifier = value; }
         public bool IsGrounded => _characterController.isGrounded;
-        public bool IsSliding => _slopeSlideState.IsSliding;
+        public bool IsSliding => _slopeSlideMovement.IsActive;
         public bool IsFalling => _fallSpeed > 0;
         public bool IsPulsedUp => _isPulsedUp;
 
@@ -30,6 +30,7 @@ namespace KarenKrill.UniCore.Movement
 
         protected virtual void Awake()
         {
+            _slopeSlideMovement = new(_slopeSlideOptions);
             if (_cameraTransform == null)
             {
                 _cameraTransform = Camera.main.transform;
@@ -54,7 +55,7 @@ namespace KarenKrill.UniCore.Movement
         }
         protected virtual void OnAnimatorMove()
         {
-            if (_useRootMotion && _animator != null && _isGrounded && !_slopeSlideState.IsSliding)
+            if (_useRootMotion && _animator != null && _isGrounded && !_slopeSlideMovement.IsActive)
             {
                 Vector3 velocity = _animator.deltaPosition;
                 velocity.y = _fallSpeed * Time.deltaTime;
@@ -93,9 +94,9 @@ namespace KarenKrill.UniCore.Movement
         [SerializeField]
         private bool _thirdPerson = false;
 
-        private readonly SlopeSlideMovementState _slopeSlideState = new();
         private readonly SlopeSlideMovementOptions _slopeSlideOptions = new(0, 0);
         private readonly SlopeSlideMovementContext _slopeSlideCtx = new(Vector3.zero, 0);
+        private SlopeSlideMovement _slopeSlideMovement;
 
         private bool _isPulsedUp = false, _isGrounded = false;
         private Vector3 _moveDirection = Vector3.zero;
@@ -115,7 +116,7 @@ namespace KarenKrill.UniCore.Movement
             _slopeSlideOptions.DecelerationFactor = _slidingDecelerationFactor;
             _slopeSlideCtx.TargetPosition = _characterController.transform.position;
             _slopeSlideCtx.TargetFallSpeed = _fallSpeed;
-            UpdateSlopeSlideVelocity(_slopeSlideOptions, _slopeSlideState, _slopeSlideCtx);
+            _slopeSlideMovement.Update(_slopeSlideCtx);
 
             _isGrounded = _characterController.isGrounded;
             if (_isGrounded)
@@ -129,7 +130,7 @@ namespace KarenKrill.UniCore.Movement
                 _characterController.stepOffset = _characterControllerStepOffset;
                 _isGrounded = true;
                 _isPulsedUp = false;
-                if (!_slopeSlideState.IsSliding)
+                if (!_slopeSlideMovement.IsActive)
                 {
                     if (Time.time - _pulseUpStartTime <= _pulseUpGracePeriod) // pulsed up recently
                     {
@@ -168,9 +169,9 @@ namespace KarenKrill.UniCore.Movement
                 velocity.y = _fallSpeed;
                 _characterController.Move(velocity * Time.deltaTime);
             }
-            if (_slopeSlideState.IsSliding)
+            if (_slopeSlideMovement.IsActive)
             {
-                Vector3 velocity = _slopeSlideState.Velocity;
+                Vector3 velocity = _slopeSlideMovement.Velocity;
                 velocity.y = _fallSpeed;
                 _characterController.Move(velocity * Time.deltaTime);
             }
@@ -212,28 +213,6 @@ namespace KarenKrill.UniCore.Movement
             }
         }
 
-        private static void UpdateSlopeSlideVelocity(SlopeSlideMovementOptions options, SlopeSlideMovementState state, SlopeSlideMovementContext ctx)
-        {
-            if (Physics.Raycast(ctx.TargetPosition, Vector3.down, out var hitInfo))
-            {
-                float slopeAngle = Vector3.Angle(hitInfo.normal, Vector3.up);
-                if (slopeAngle >= options.SlopeLimitDegrees)
-                {
-                    state.Velocity = Vector3.ProjectOnPlane(new Vector3(0, ctx.TargetFallSpeed, 0), hitInfo.normal);
-                    state.IsSliding = true;
-                    return;
-                }
-            }
-            if (state.IsSliding)
-            {
-                state.Velocity -= options.DecelerationFactor * Time.deltaTime * state.Velocity;
-                if (state.Velocity.magnitude > 1)
-                {
-                    return;
-                }
-            }
-            state.Velocity = Vector3.zero;
-            state.IsSliding = false;
-        }
+        
     }
 }
