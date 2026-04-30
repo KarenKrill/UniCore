@@ -205,15 +205,10 @@ namespace KarenKrill.UniCore.Movement
             {
                 velocity = _slopeSlideMovement.Velocity;
             }
-            else if (!_isGrounded) // jumping
+            else if (!_isGrounded || !_useRootMotion)
             {
-                float speed = directionMagnitude * _inAirHorizontalSpeed;
-                velocity = speed * direction;
-                velocity = new(velocity.Value.x, _fallSpeed, velocity.Value.z);
-            }
-            else if (!_useRootMotion)
-            {
-                float speed = directionMagnitude * _maximumSpeed;
+                var maxSpeed = _isGrounded ? _maximumSpeed : _inAirHorizontalSpeed;
+                float speed = directionMagnitude * maxSpeed;
                 velocity = speed * direction;
                 velocity = new(velocity.Value.x, _fallSpeed, velocity.Value.z);
             }
