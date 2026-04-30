@@ -201,12 +201,6 @@ namespace KarenKrill.UniCore.Movement
         private bool TryUpdateVelocity(Vector3 direction, float directionMagnitude, [NotNullWhen(true)] out Vector3? velocity)
         {
             velocity = null;
-            if (!_useRootMotion)
-            {
-                float speed = directionMagnitude * _maximumSpeed;
-                velocity = speed * direction;
-                velocity = new(velocity.Value.x, _fallSpeed, velocity.Value.z);
-            }
             if (_slopeSlideMovement.IsActive)
             {
                 velocity = _slopeSlideMovement.Velocity;
@@ -214,6 +208,12 @@ namespace KarenKrill.UniCore.Movement
             else if (!_isGrounded) // jumping
             {
                 float speed = directionMagnitude * _inAirHorizontalSpeed;
+                velocity = speed * direction;
+                velocity = new(velocity.Value.x, _fallSpeed, velocity.Value.z);
+            }
+            else if (!_useRootMotion)
+            {
+                float speed = directionMagnitude * _maximumSpeed;
                 velocity = speed * direction;
                 velocity = new(velocity.Value.x, _fallSpeed, velocity.Value.z);
             }
