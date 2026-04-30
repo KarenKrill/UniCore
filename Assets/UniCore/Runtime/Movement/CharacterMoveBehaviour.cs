@@ -1,6 +1,6 @@
-﻿using UnityEngine;
-
-using KarenKrill.UniCore.Utilities;
+﻿using KarenKrill.UniCore.Utilities;
+using System;
+using UnityEngine;
 
 namespace KarenKrill.UniCore.Movement
 {
@@ -62,6 +62,13 @@ namespace KarenKrill.UniCore.Movement
                 _characterController.Move(velocity);
             }
         }
+
+        private static readonly Lazy<int> IsLookingHash = new(() => Animator.StringToHash("IsLooking"));
+        private static readonly Lazy<int> IsMovingHash = new(() => Animator.StringToHash("IsMoving"));
+        private static readonly Lazy<int> IsFallingHash = new(() => Animator.StringToHash("IsFalling"));
+        private static readonly Lazy<int> IsJumpingHash = new(() => Animator.StringToHash("IsJumping"));
+        private static readonly Lazy<int> IsGroundedHash = new(() => Animator.StringToHash("IsGrounded"));
+        private static readonly Lazy<int> InputMagnitudeHash = new(() => Animator.StringToHash("InputMagnitude"));
 
         [SerializeField]
         private CharacterController _characterController;
@@ -218,12 +225,12 @@ namespace KarenKrill.UniCore.Movement
 
             if (_animator != null)
             {
-                _animator.SetFloat("InputMagnitude", directionMagnitude, 0.5f, Time.deltaTime);
-                _animator.SetBool("IsGrounded", _isGrounded);
-                _animator.SetBool("IsJumping", _isPulsedUp);
-                _animator.SetBool("IsFalling", isFalling);
-                _animator.SetBool("IsMoving", isMoving);
-                _animator.SetBool("IsLooking", isLooking);
+                _animator.SetFloat(InputMagnitudeHash.Value, directionMagnitude, 0.5f, Time.deltaTime);
+                _animator.SetBool(IsGroundedHash.Value, _isGrounded);
+                _animator.SetBool(IsJumpingHash.Value, _isPulsedUp);
+                _animator.SetBool(IsFallingHash.Value, isFalling);
+                _animator.SetBool(IsMovingHash.Value, isMoving);
+                _animator.SetBool(IsLookingHash.Value, isLooking);
             }
         }
     }
