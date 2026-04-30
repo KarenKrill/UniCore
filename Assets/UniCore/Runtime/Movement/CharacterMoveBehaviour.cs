@@ -12,7 +12,6 @@ namespace KarenKrill.UniCore.Movement
         /// <summary>Range: [0..1]</summary>
         public float GravityModifier { get => _gravityModifier; set => _gravityModifier = value; }
         public bool IsGrounded => _characterController.isGrounded;
-        public bool IsGroundedRecently => _isGroundedRecently;
         public bool IsSliding => _isSliding;
         public bool IsFalling => _fallSpeed > 0;
         public bool IsPulsedUp => _isPulsedUp;
@@ -95,7 +94,6 @@ namespace KarenKrill.UniCore.Movement
         private bool _thirdPerson = false;
 
         private bool _isPulsedUp = false, _isSliding = false, _isGrounded = false;
-        private bool _isGroundedRecently = false;
         private Vector3 _moveDirection = Vector3.zero;
         private Vector3 _lookDirection = Vector2.zero;
         private float _fallSpeed;
@@ -145,7 +143,6 @@ namespace KarenKrill.UniCore.Movement
             bool isFalling = !_isGrounded;
             if (Time.time - _lastGroundedTime <= _pulseUpGracePeriod) // grounded recently
             {
-                _isGroundedRecently = true;
                 _characterController.stepOffset = _characterControllerStepOffset;
                 _isGrounded = true;
                 isFalling = false;
@@ -167,7 +164,6 @@ namespace KarenKrill.UniCore.Movement
             }
             else
             {
-                _isGroundedRecently = false;
                 _characterController.stepOffset = 0; // fix stuck in the wall while jumping
                 if ((_isPulsedUp && _fallSpeed < 0) || _fallSpeed < -2)
                 {
