@@ -103,12 +103,12 @@ namespace KarenKrill.UniCore.Movement
         private float _characterControllerStepOffset;
         private float? _lastGroundedTime, _pulseUpStartTime;
 
-        private void UpdateSlopeSlideVelocity()
+        private void UpdateSlopeSlideVelocity(Vector3 position, float slopeLimitDegrees)
         {
-            if (Physics.Raycast(_characterController.transform.position, Vector3.down, out var hitInfo))
+            if (Physics.Raycast(position, Vector3.down, out var hitInfo))
             {
                 float slopeAngle = Vector3.Angle(hitInfo.normal, Vector3.up);
-                if (slopeAngle >= _characterController.slopeLimit)
+                if (slopeAngle >= slopeLimitDegrees)
                 {
                     _slopeSlideVelocity = Vector3.ProjectOnPlane(new Vector3(0, _fallSpeed, 0), hitInfo.normal);
                     _isSliding = true;
@@ -131,7 +131,7 @@ namespace KarenKrill.UniCore.Movement
             float gravity = Physics.gravity.y * _gravityMultiplier * _gravityModifier;
             _fallSpeed += gravity * Time.deltaTime;
 
-            UpdateSlopeSlideVelocity();
+            UpdateSlopeSlideVelocity(_characterController.transform.position, _characterController.slopeLimit);
 
             _isGrounded = _characterController.isGrounded;
             if (_isGrounded)
