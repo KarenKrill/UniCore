@@ -110,8 +110,8 @@ namespace KarenKrill.UniCore.Movement
 
         private void UpdateMovement()
         {
-            float gravity = Physics.gravity.y * _gravityMultiplier * _gravityModifier;
-            _fallSpeed += gravity * Time.deltaTime;
+            float gravity = Mathf.Abs(Physics.gravity.y) * _gravityMultiplier * _gravityModifier;
+            _fallSpeed -= gravity * Time.deltaTime;
 
             _slopeSlideOptions.SlopeLimitDegrees = _characterController.slopeLimit;
             _slopeSlideOptions.DecelerationFactor = _slidingDecelerationFactor;
@@ -138,7 +138,7 @@ namespace KarenKrill.UniCore.Movement
                         _isPulsedUp = true;
                         _pulseUpStartTime = null;
                         _lastGroundedTime = null;
-                        _fallSpeed = Mathf.Sqrt(_pulseUpDistance * -3 * gravity);
+                        _fallSpeed = Mathf.Sqrt(_pulseUpDistance * 3 * gravity);
                     }
                     else
                     {
