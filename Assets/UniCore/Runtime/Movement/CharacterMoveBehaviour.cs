@@ -1,5 +1,6 @@
 ﻿using KarenKrill.UniCore.Utilities;
 using System;
+using System.Diagnostics.CodeAnalysis;
 using UnityEngine;
 
 namespace KarenKrill.UniCore.Movement
@@ -162,25 +163,9 @@ namespace KarenKrill.UniCore.Movement
                 direction.Normalize();
             }
             var directionMagnitude = Mathf.Clamp(direction.magnitude, 0, SpeedModifier);
-            if (!_useRootMotion)
+            if(TryUpdateVelocity(direction, directionMagnitude, out var velocity))
             {
-                float speed = directionMagnitude * _maximumSpeed;
-                Vector3 velocity = speed * direction;
-                velocity.y = _fallSpeed;
-                _characterController.Move(velocity * Time.deltaTime);
-            }
-            if (_slopeSlideMovement.IsActive)
-            {
-                Vector3 velocity = _slopeSlideMovement.Velocity;
-                velocity.y = _fallSpeed;
-                _characterController.Move(velocity * Time.deltaTime);
-            }
-            else if (!_isGrounded) // jumping
-            {
-                float speed = directionMagnitude * _inAirHorizontalSpeed;
-                Vector3 velocity = speed * direction;
-                velocity.y = _fallSpeed;
-                _characterController.Move(velocity * Time.deltaTime);
+                _characterController.Move(velocity.Value * Time.deltaTime);
             }
 
             // Direction usings
@@ -197,10 +182,10 @@ namespace KarenKrill.UniCore.Movement
                 }
             }
             else if (isMoving || isLooking)
-                {
-                    var rotation = Quaternion.RotateTowards(_characterController.transform.rotation, cameraRelativeQuaternion, 360);
-                    _characterController.transform.rotation = rotation;
-                }
+            {
+                var rotation = Quaternion.RotateTowards(_characterController.transform.rotation, cameraRelativeQuaternion, 360);
+                _characterController.transform.rotation = rotation;
+            }
 
             if (_animator != null)
             {
@@ -213,6 +198,27 @@ namespace KarenKrill.UniCore.Movement
             }
         }
 
-        
+        private bool TryUpdateVelocity(Vector3 direction, float directionMagnitude, [NotNullWhen(true)] out Vector3? velocity)
+        {
+            velocity = null;
+            if (!_useRootMotion)
+            {
+                float speed = directionMagnitude * _maximumSpeed;
+                velocity = speed * direction;
+                velocity = new(velocity.Value.x, _fallSpeed, velocity.Value.z);
+            }
+            if (_slopeSlideMovement.IsActive)
+            {
+                velocity = _slopeSlideMovement.Velocity;
+            }
+            else if (!_isGrounded) // jumping
+            {
+                float speed = directionMagnitude * _inAirHorizontalSpeed;
+                velocity = speed * direction;
+                velocity = new(velocity.Value.x, _fallSpeed, velocity.Value.z);
+            }
+            return velocity is not null;
+        }
+
     }
 }
