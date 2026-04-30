@@ -140,12 +140,10 @@ namespace KarenKrill.UniCore.Movement
             }
 
             // Check on falling
-            bool isFalling = !_isGrounded;
             if (Time.time - _lastGroundedTime <= _pulseUpGracePeriod) // grounded recently
             {
                 _characterController.stepOffset = _characterControllerStepOffset;
                 _isGrounded = true;
-                isFalling = false;
                 _isPulsedUp = false;
                 if (!_isSliding)
                 {
@@ -167,7 +165,7 @@ namespace KarenKrill.UniCore.Movement
                 _characterController.stepOffset = 0; // fix stuck in the wall while jumping
                 if ((_isPulsedUp && _fallSpeed < 0) || _fallSpeed < -2)
                 {
-                    isFalling = true;
+                    _isGrounded = false;
                 }
             }
 
@@ -224,7 +222,7 @@ namespace KarenKrill.UniCore.Movement
                 _animator.SetFloat(InputMagnitudeHash.Value, directionMagnitude, 0.5f, Time.deltaTime);
                 _animator.SetBool(IsGroundedHash.Value, _isGrounded);
                 _animator.SetBool(IsJumpingHash.Value, _isPulsedUp);
-                _animator.SetBool(IsFallingHash.Value, isFalling);
+                _animator.SetBool(IsFallingHash.Value, !_isGrounded);
                 _animator.SetBool(IsMovingHash.Value, isMoving);
                 _animator.SetBool(IsLookingHash.Value, isLooking);
             }
