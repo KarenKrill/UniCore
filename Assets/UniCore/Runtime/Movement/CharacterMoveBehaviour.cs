@@ -103,29 +103,6 @@ namespace KarenKrill.UniCore.Movement
         private float _characterControllerStepOffset;
         private float? _lastGroundedTime, _pulseUpStartTime;
 
-        private void UpdateSlopeSlideVelocity(Vector3 position, float slopeLimitDegrees)
-        {
-            if (Physics.Raycast(position, Vector3.down, out var hitInfo))
-            {
-                float slopeAngle = Vector3.Angle(hitInfo.normal, Vector3.up);
-                if (slopeAngle >= slopeLimitDegrees)
-                {
-                    _slopeSlideVelocity = Vector3.ProjectOnPlane(new Vector3(0, _fallSpeed, 0), hitInfo.normal);
-                    _isSliding = true;
-                    return;
-                }
-            }
-            if (_isSliding)
-            {
-                _slopeSlideVelocity -= _slidingDecelerationFactor * Time.deltaTime * _slopeSlideVelocity;
-                if (_slopeSlideVelocity.magnitude > 1)
-                {
-                    return;
-                }
-            }
-            _slopeSlideVelocity = Vector3.zero;
-            _isSliding = false;
-        }
         private void UpdateMovement()
         {
             float gravity = Physics.gravity.y * _gravityMultiplier * _gravityModifier;
@@ -226,6 +203,30 @@ namespace KarenKrill.UniCore.Movement
                 _animator.SetBool(IsMovingHash.Value, isMoving);
                 _animator.SetBool(IsLookingHash.Value, isLooking);
             }
+        }
+
+        private void UpdateSlopeSlideVelocity(Vector3 position, float slopeLimitDegrees)
+        {
+            if (Physics.Raycast(position, Vector3.down, out var hitInfo))
+            {
+                float slopeAngle = Vector3.Angle(hitInfo.normal, Vector3.up);
+                if (slopeAngle >= slopeLimitDegrees)
+                {
+                    _slopeSlideVelocity = Vector3.ProjectOnPlane(new Vector3(0, _fallSpeed, 0), hitInfo.normal);
+                    _isSliding = true;
+                    return;
+                }
+            }
+            if (_isSliding)
+            {
+                _slopeSlideVelocity -= _slidingDecelerationFactor * Time.deltaTime * _slopeSlideVelocity;
+                if (_slopeSlideVelocity.magnitude > 1)
+                {
+                    return;
+                }
+            }
+            _slopeSlideVelocity = Vector3.zero;
+            _isSliding = false;
         }
     }
 }
