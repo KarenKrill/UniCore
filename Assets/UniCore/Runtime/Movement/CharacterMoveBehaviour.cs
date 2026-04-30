@@ -163,28 +163,14 @@ namespace KarenKrill.UniCore.Movement
                 direction.Normalize();
             }
             var directionMagnitude = Mathf.Clamp(direction.magnitude, 0, SpeedModifier);
-            if(TryUpdateVelocity(direction, directionMagnitude, out var velocity))
+            if (TryUpdateVelocity(direction, directionMagnitude, out var velocity))
             {
                 _characterController.Move(velocity.Value * Time.deltaTime);
             }
 
-            // Direction usings
-            bool isMoving = direction != Vector3.zero;
-            bool isLooking = _lookDirection != Vector3.zero;
-            if (_thirdPerson)
+            if (TryUpdateRotation(cameraRelativeQuaternion, direction, _lookDirection, out var rotation))
             {
-                if (isMoving)
-                {
-                    var directionLookRotation = Quaternion.LookRotation(direction, Vector3.up);
-                    var characterRotation = _characterController.transform.rotation;
-                    var rotation = Quaternion.RotateTowards(characterRotation, directionLookRotation, _rotationDegreeSpeed * Time.deltaTime);
-                    _characterController.transform.rotation = rotation;
-                }
-            }
-            else if (isMoving || isLooking)
-            {
-                var rotation = Quaternion.RotateTowards(_characterController.transform.rotation, cameraRelativeQuaternion, 360);
-                _characterController.transform.rotation = rotation;
+                _characterController.transform.rotation = rotation.Value;
             }
 
             if (_animator != null)
@@ -193,9 +179,30 @@ namespace KarenKrill.UniCore.Movement
                 _animator.SetBool(IsGroundedHash.Value, _isGrounded);
                 _animator.SetBool(IsJumpingHash.Value, _isPulsedUp);
                 _animator.SetBool(IsFallingHash.Value, !_isGrounded);
-                _animator.SetBool(IsMovingHash.Value, isMoving);
-                _animator.SetBool(IsLookingHash.Value, isLooking);
+                _animator.SetBool(IsMovingHash.Value, direction != Vector3.zero);
+                _animator.SetBool(IsLookingHash.Value, _lookDirection != Vector3.zero);
             }
+        }
+
+        private bool TryUpdateRotation(Quaternion cameraRelativeQuaternion, Vector3 direction, Vector3 lookDirection, [NotNullWhen(true)] out Quaternion? rotation)
+        {
+            bool isMoving = direction != Vector3.zero;
+            bool isLooking = lookDirection != Vector3.zero;
+            rotation = null;
+            if (_thirdPerson)
+            {
+                if (isMoving)
+                {
+                    var directionLookRotation = Quaternion.LookRotation(direction, Vector3.up);
+                    var characterRotation = _characterController.transform.rotation;
+                    rotation = Quaternion.RotateTowards(characterRotation, directionLookRotation, _rotationDegreeSpeed * Time.deltaTime);
+                }
+            }
+            else if (isMoving || isLooking)
+            {
+                rotation = Quaternion.RotateTowards(_characterController.transform.rotation, cameraRelativeQuaternion, 360);
+            }
+            return rotation is not null;
         }
 
         private bool TryUpdateVelocity(Vector3 direction, float directionMagnitude, [NotNullWhen(true)] out Vector3? velocity)
