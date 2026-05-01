@@ -161,11 +161,16 @@ namespace KarenKrill.UniCore.Movement
             // Direction & DirectionInputMagnitude usings
             var cameraRelativeQuaternion = Quaternion.AngleAxis(_cameraTransform.rotation.eulerAngles.y, Vector3.up);
             var direction = cameraRelativeQuaternion * _moveDirection;
-            if (direction.magnitude > 1)
+            var directionMagnitude = direction.magnitude;
+            if (directionMagnitude > 1)
             {
                 direction.Normalize();
+                directionMagnitude = SpeedModifier;
             }
-            var directionMagnitude = Mathf.Clamp(direction.magnitude, 0, SpeedModifier);
+            else
+            {
+                directionMagnitude = Mathf.Clamp(directionMagnitude, 0, SpeedModifier);
+            }
             if (TryUpdateVelocity(direction, directionMagnitude, out var velocity))
             {
                 _characterController.Move(velocity.Value * Time.deltaTime);
