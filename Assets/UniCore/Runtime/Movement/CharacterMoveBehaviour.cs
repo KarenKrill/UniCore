@@ -99,7 +99,7 @@ namespace KarenKrill.UniCore.Movement
         private readonly SlopeSlideMovementContext _slopeSlideCtx = new(Vector3.zero, 0);
         private SlopeSlideMovement _slopeSlideMovement;
 
-        private bool _isPulsedUp = false, _isGrounded = false;
+        private bool _isPulsedUp = false, _isGrounded = false, _isGroundedRecently = false;
         private Vector3 _moveDirection = Vector3.zero;
         private Vector3 _lookDirection = Vector2.zero;
         private float _fallSpeed;
@@ -121,7 +121,7 @@ namespace KarenKrill.UniCore.Movement
             {
                 _fallSpeed -= gravity * Time.deltaTime;
             }
-            var isGroundedRecently = Time.time - _lastGroundedTime <= _pulseUpGracePeriod;
+            _isGroundedRecently = Time.time - _lastGroundedTime <= _pulseUpGracePeriod;
 
             if (_isGrounded || _slopeSlideMovement.IsActive)
             {
@@ -134,7 +134,7 @@ namespace KarenKrill.UniCore.Movement
 
 
             // Check on falling
-            if (isGroundedRecently)
+            if (_isGroundedRecently)
             {
                 _characterController.stepOffset = _characterControllerStepOffset;
                 _isGrounded = true;
