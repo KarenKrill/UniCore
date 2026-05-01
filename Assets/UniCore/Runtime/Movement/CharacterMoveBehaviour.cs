@@ -111,19 +111,26 @@ namespace KarenKrill.UniCore.Movement
         private void UpdateMovement()
         {
             float gravity = Mathf.Abs(Physics.gravity.y) * _gravityMultiplier * _gravityModifier;
-            _fallSpeed -= gravity * Time.deltaTime;
-
-            _slopeSlideOptions.SlopeLimitDegrees = _characterController.slopeLimit;
-            _slopeSlideOptions.DecelerationFactor = _slidingDecelerationFactor;
-            _slopeSlideCtx.TargetPosition = _characterController.transform.position;
-            _slopeSlideCtx.TargetFallSpeed = _fallSpeed;
-            _slopeSlideMovement.Update(_slopeSlideCtx);
-
             _isGrounded = _characterController.isGrounded;
-            if (_isGrounded)
+            if (_isGrounded && !_slopeSlideMovement.IsActive)
             {
                 _lastGroundedTime = Time.time;
+                _fallSpeed = -2f; // to prevent isGrounded false positives
             }
+            else
+            {
+                _fallSpeed -= gravity * Time.deltaTime;
+            }
+
+            if (_isGrounded || _slopeSlideMovement.IsActive)
+            {
+                _slopeSlideOptions.SlopeLimitDegrees = _characterController.slopeLimit;
+                _slopeSlideOptions.DecelerationFactor = _slidingDecelerationFactor;
+                _slopeSlideCtx.TargetPosition = _characterController.transform.position;
+                _slopeSlideCtx.TargetFallSpeed = _fallSpeed;
+                _slopeSlideMovement.Update(_slopeSlideCtx);
+            }
+
 
             // Check on falling
             if (Time.time - _lastGroundedTime <= _pulseUpGracePeriod) // grounded recently
@@ -140,16 +147,12 @@ namespace KarenKrill.UniCore.Movement
                         _lastGroundedTime = null;
                         _fallSpeed = Mathf.Sqrt(_pulseUpDistance * 3 * gravity);
                     }
-                    else
-                    {
-                        _fallSpeed = -0.5f; // to prevent isGrounded false positives
-                    }
                 }
             }
             else
             {
                 _characterController.stepOffset = 0; // fix stuck in the wall while jumping
-                if ((_isPulsedUp && _fallSpeed < 0) || _fallSpeed < -2)
+                if ((_isPulsedUp && _fallSpeed < 0) || _fallSpeed < -2f)
                 {
                     _isGrounded = false;
                 }
@@ -211,13 +214,15 @@ namespace KarenKrill.UniCore.Movement
             if (_slopeSlideMovement.IsActive)
             {
                 velocity = _slopeSlideMovement.Velocity;
+                Debug.Log("Velocity source: sliding");
             }
-            else if (!_isGrounded || !_useRootMotion)
+            else if (!_useRootMotion)
             {
                 var maxSpeed = _isGrounded ? _maximumSpeed : _inAirHorizontalSpeed;
                 float speed = directionMagnitude * maxSpeed;
                 velocity = speed * direction;
                 velocity = new(velocity.Value.x, _fallSpeed, velocity.Value.z);
+                Debug.Log("Velocity source: movement");
             }
             return velocity is not null;
         }
