@@ -220,7 +220,6 @@ namespace KarenKrill.UniCore.Movement
             if (_slopeSlideMovement.IsActive)
             {
                 velocity = _slopeSlideMovement.Velocity;
-                Debug.Log("Velocity source: sliding");
             }
             else if (!_useRootMotion)
             {
@@ -228,7 +227,6 @@ namespace KarenKrill.UniCore.Movement
                 float speed = directionMagnitude * maxSpeed;
                 velocity = speed * direction;
                 velocity = new(velocity.Value.x, _fallSpeed, velocity.Value.z);
-                Debug.Log("Velocity source: movement");
             }
             return velocity is not null;
         }
