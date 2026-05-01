@@ -52,64 +52,6 @@ namespace KarenKrill.UniCore.Movement
         }
         protected virtual void Update()
         {
-            UpdateMovement();
-        }
-        protected virtual void OnAnimatorMove()
-        {
-            if (_useRootMotion && _animator != null && _isGrounded && !_slopeSlideMovement.IsActive)
-            {
-                Vector3 velocity = _animator.deltaPosition;
-                velocity.y = _fallSpeed * Time.deltaTime;
-                _characterController.Move(velocity);
-            }
-        }
-
-        private static readonly Lazy<int> IsLookingHash = new(() => Animator.StringToHash("IsLooking"));
-        private static readonly Lazy<int> IsMovingHash = new(() => Animator.StringToHash("IsMoving"));
-        private static readonly Lazy<int> IsFallingHash = new(() => Animator.StringToHash("IsFalling"));
-        private static readonly Lazy<int> IsJumpingHash = new(() => Animator.StringToHash("IsJumping"));
-        private static readonly Lazy<int> IsGroundedHash = new(() => Animator.StringToHash("IsGrounded"));
-        private static readonly Lazy<int> InputMagnitudeHash = new(() => Animator.StringToHash("InputMagnitude"));
-
-        [SerializeField]
-        private CharacterController _characterController;
-        [SerializeField]
-        private Transform _cameraTransform;
-        [SerializeField]
-        private Animator _animator = null;
-        [SerializeField]
-        private float _maximumSpeed = 5f, _rotationDegreeSpeed = 360.0f;
-        [SerializeField, Range(0, 1)]
-        private float _speedModifier = 1f;
-        [SerializeField, Range(0, 1)]
-        private float _gravityModifier = 1f;
-        [SerializeField]
-        private float _gravityMultiplier = 1.5f;
-        [SerializeField]
-        private float _slidingDecelerationFactor = 3f;
-        [SerializeField]
-        private bool _useRootMotion = false;
-        /// <summary>
-        /// Use MoveDirection towards or LookDirection for character rotation
-        /// </summary>
-        [SerializeField]
-        private bool _thirdPerson = false;
-
-        private readonly SlopeSlideMovementOptions _slopeSlideOptions = new(0, 0);
-        private readonly SlopeSlideMovementContext _slopeSlideCtx = new(Vector3.zero, 0);
-        private SlopeSlideMovement _slopeSlideMovement;
-
-        private bool _isPulsedUp = false, _isGrounded = false, _isGroundedRecently = false;
-        private Vector3 _moveDirection = Vector3.zero;
-        private Vector3 _lookDirection = Vector2.zero;
-        private float _fallSpeed;
-        private float _pulseUpGracePeriod = 0.2f;
-        private float _pulseUpDistance = 2.0f, _inAirHorizontalSpeed = 3.0f;
-        private float _characterControllerStepOffset;
-        private float? _lastGroundedTime, _pulseUpStartTime;
-
-        private void UpdateMovement()
-        {
             float gravity = Mathf.Abs(Physics.gravity.y) * _gravityMultiplier * _gravityModifier;
             _isGrounded = _characterController.isGrounded;
             if (_isGrounded && !_slopeSlideMovement.IsActive)
@@ -176,7 +118,6 @@ namespace KarenKrill.UniCore.Movement
             {
                 _characterController.Move(velocity.Value * Time.deltaTime);
             }
-
             if (TryUpdateRotation(cameraRelativeQuaternion, direction, _lookDirection, out var rotation))
             {
                 _characterController.transform.rotation = rotation.Value;
@@ -192,7 +133,77 @@ namespace KarenKrill.UniCore.Movement
                 _animator.SetBool(IsLookingHash.Value, _lookDirection != Vector3.zero);
             }
         }
+        protected virtual void OnAnimatorMove()
+        {
+            if (_useRootMotion && _animator != null && _isGrounded && !_slopeSlideMovement.IsActive)
+            {
+                Vector3 velocity = _animator.deltaPosition;
+                velocity.y = _fallSpeed * Time.deltaTime;
+                _characterController.Move(velocity);
+            }
+        }
 
+        private static readonly Lazy<int> IsLookingHash = new(() => Animator.StringToHash("IsLooking"));
+        private static readonly Lazy<int> IsMovingHash = new(() => Animator.StringToHash("IsMoving"));
+        private static readonly Lazy<int> IsFallingHash = new(() => Animator.StringToHash("IsFalling"));
+        private static readonly Lazy<int> IsJumpingHash = new(() => Animator.StringToHash("IsJumping"));
+        private static readonly Lazy<int> IsGroundedHash = new(() => Animator.StringToHash("IsGrounded"));
+        private static readonly Lazy<int> InputMagnitudeHash = new(() => Animator.StringToHash("InputMagnitude"));
+
+        [SerializeField]
+        private CharacterController _characterController;
+        [SerializeField]
+        private Transform _cameraTransform;
+        [SerializeField]
+        private Animator _animator = null;
+        [SerializeField]
+        private float _maximumSpeed = 5f, _rotationDegreeSpeed = 360.0f;
+        [SerializeField, Range(0, 1)]
+        private float _speedModifier = 1f;
+        [SerializeField, Range(0, 1)]
+        private float _gravityModifier = 1f;
+        [SerializeField]
+        private float _gravityMultiplier = 1.5f;
+        [SerializeField]
+        private float _slidingDecelerationFactor = 3f;
+        [SerializeField]
+        private bool _useRootMotion = false;
+        /// <summary>
+        /// Use MoveDirection towards or LookDirection for character rotation
+        /// </summary>
+        [SerializeField]
+        private bool _thirdPerson = false;
+
+        private readonly SlopeSlideMovementOptions _slopeSlideOptions = new(0, 0);
+        private readonly SlopeSlideMovementContext _slopeSlideCtx = new(Vector3.zero, 0);
+        private SlopeSlideMovement _slopeSlideMovement;
+
+        private bool _isPulsedUp = false, _isGrounded = false, _isGroundedRecently = false;
+        private Vector3 _moveDirection = Vector3.zero;
+        private Vector3 _lookDirection = Vector2.zero;
+        private float _fallSpeed;
+        private float _pulseUpGracePeriod = 0.2f;
+        private float _pulseUpDistance = 2.0f, _inAirHorizontalSpeed = 3.0f;
+        private float _characterControllerStepOffset;
+        private float? _lastGroundedTime, _pulseUpStartTime;
+
+        private bool TryUpdateVelocity(Vector3 direction, float directionMagnitude, [NotNullWhen(true)] out Vector3? velocity)
+        {
+            velocity = null;
+            if (_slopeSlideMovement.IsActive)
+            {
+                velocity = _slopeSlideMovement.Velocity;
+            }
+            else if (!_useRootMotion)
+            {
+                var maxSpeed = _isGrounded ? _maximumSpeed : _inAirHorizontalSpeed;
+                float speed = directionMagnitude * maxSpeed;
+                velocity = speed * direction;
+                velocity = new(velocity.Value.x, _fallSpeed, velocity.Value.z);
+            }
+            return velocity is not null;
+        }
+        
         private bool TryUpdateRotation(Quaternion cameraRelativeQuaternion, Vector3 direction, Vector3 lookDirection, [NotNullWhen(true)] out Quaternion? rotation)
         {
             bool isMoving = direction != Vector3.zero;
@@ -212,23 +223,6 @@ namespace KarenKrill.UniCore.Movement
                 rotation = Quaternion.RotateTowards(_characterController.transform.rotation, cameraRelativeQuaternion, 360);
             }
             return rotation is not null;
-        }
-
-        private bool TryUpdateVelocity(Vector3 direction, float directionMagnitude, [NotNullWhen(true)] out Vector3? velocity)
-        {
-            velocity = null;
-            if (_slopeSlideMovement.IsActive)
-            {
-                velocity = _slopeSlideMovement.Velocity;
-            }
-            else if (!_useRootMotion)
-            {
-                var maxSpeed = _isGrounded ? _maximumSpeed : _inAirHorizontalSpeed;
-                float speed = directionMagnitude * maxSpeed;
-                velocity = speed * direction;
-                velocity = new(velocity.Value.x, _fallSpeed, velocity.Value.z);
-            }
-            return velocity is not null;
         }
 
     }
