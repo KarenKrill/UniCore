@@ -121,6 +121,7 @@ namespace KarenKrill.UniCore.Movement
             {
                 _fallSpeed -= gravity * Time.deltaTime;
             }
+            var isGroundedRecently = Time.time - _lastGroundedTime <= _pulseUpGracePeriod;
 
             if (_isGrounded || _slopeSlideMovement.IsActive)
             {
@@ -133,7 +134,7 @@ namespace KarenKrill.UniCore.Movement
 
 
             // Check on falling
-            if (Time.time - _lastGroundedTime <= _pulseUpGracePeriod) // grounded recently
+            if (isGroundedRecently)
             {
                 _characterController.stepOffset = _characterControllerStepOffset;
                 _isGrounded = true;
