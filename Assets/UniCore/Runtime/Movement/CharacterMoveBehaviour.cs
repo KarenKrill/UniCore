@@ -54,18 +54,13 @@ namespace KarenKrill.UniCore.Movement
         {
             float gravity = Mathf.Abs(Physics.gravity.y) * _gravityMultiplier * _gravityModifier;
             _isGrounded = _characterController.isGrounded;
-            if (_isGrounded && !_slopeSlideMovement.IsActive)
+            if (_isGrounded)
             {
                 _lastGroundedTime = Time.time;
-                _fallSpeed = -2f; // to prevent isGrounded false positives
-            }
-            else
-            {
-                _fallSpeed -= gravity * Time.deltaTime;
             }
             _isGroundedRecently = Time.time - _lastGroundedTime <= _pulseUpGracePeriod;
 
-            if (_isGrounded || _slopeSlideMovement.IsActive)
+            if (_isGroundedRecently || _slopeSlideMovement.IsActive)
             {
                 _slopeSlideOptions.SlopeLimitDegrees = _characterController.slopeLimit;
                 _slopeSlideOptions.DecelerationFactor = _slidingDecelerationFactor;
@@ -74,6 +69,14 @@ namespace KarenKrill.UniCore.Movement
                 _slopeSlideMovement.Update(_slopeSlideCtx);
             }
 
+            if (_isGrounded && _slopeSlideCtx.IsGroundStable)
+            {
+                _fallSpeed = -2f; // to prevent isGrounded false positives
+            }
+            else
+            {
+                _fallSpeed -= gravity * Time.deltaTime;
+            }
 
             // Check on falling
             if (_isGroundedRecently)
@@ -125,10 +128,11 @@ namespace KarenKrill.UniCore.Movement
 
             if (_animator != null)
             {
+                var isStableGrounded = _isGrounded && _slopeSlideCtx.IsGroundStable;
                 _animator.SetFloat(InputMagnitudeHash.Value, directionMagnitude, 0.5f, Time.deltaTime);
-                _animator.SetBool(IsGroundedHash.Value, _isGrounded);
+                _animator.SetBool(IsGroundedHash.Value, isStableGrounded);
                 _animator.SetBool(IsJumpingHash.Value, _isPulsedUp);
-                _animator.SetBool(IsFallingHash.Value, !_isGrounded);
+                _animator.SetBool(IsFallingHash.Value, !isStableGrounded);
                 _animator.SetBool(IsMovingHash.Value, direction != Vector3.zero);
                 _animator.SetBool(IsLookingHash.Value, _lookDirection != Vector3.zero);
             }
@@ -175,7 +179,7 @@ namespace KarenKrill.UniCore.Movement
         private bool _thirdPerson = false;
 
         private readonly SlopeSlideMovementOptions _slopeSlideOptions = new(0, 0);
-        private readonly SlopeSlideMovementContext _slopeSlideCtx = new(Vector3.zero, 0);
+        private readonly SlopeSlideMovementContext _slopeSlideCtx = new(Vector3.zero, 0, false);
         private SlopeSlideMovement _slopeSlideMovement;
 
         private bool _isPulsedUp = false, _isGrounded = false, _isGroundedRecently = false;

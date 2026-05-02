@@ -10,11 +10,14 @@ namespace KarenKrill.UniCore.Movement
         public Vector3 TargetPosition { get; set; }
         [field: SerializeField]
         public float TargetFallSpeed { get; set; }
+        [field: SerializeField]
+        public bool IsGroundStable { get; set; }
 
-        public SlopeSlideMovementContext(Vector3 targetPosition, float targetFallSpeed)
+        public SlopeSlideMovementContext(Vector3 targetPosition, float targetFallSpeed, bool isGroundStable)
         {
             TargetPosition = targetPosition;
             TargetFallSpeed = targetFallSpeed;
+            IsGroundStable = isGroundStable;
         }
     }
 }
