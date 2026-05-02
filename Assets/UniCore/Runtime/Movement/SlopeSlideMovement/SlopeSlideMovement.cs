@@ -5,7 +5,7 @@ namespace KarenKrill.UniCore.Movement
 {
     public class SlopeSlideMovement
     {
-        public static readonly float SlopeLimitDegreesDefault = 45;
+        public static readonly float MinSlidingSlopeAngleDefault = 45;
         public static readonly float DecelerationFactorDefault = 1;
 
         public bool IsActive => _state.IsSliding;
@@ -13,36 +13,80 @@ namespace KarenKrill.UniCore.Movement
 
         public SlopeSlideMovement(SlopeSlideMovementOptions? options = null)
         {
-            _options = options ?? new(SlopeLimitDegreesDefault, DecelerationFactorDefault);
+            _options = options ?? new(MinSlidingSlopeAngleDefault, DecelerationFactorDefault, Physics.gravity.y, 0);
         }
 
         public void Update(SlopeSlideMovementContext ctx)
         {
-            if (Physics.RaycastNonAlloc(ctx.TargetPosition, Vector3.down, _downRaycastHits) > 0)
+            if (ctx.IsGroundedCoyote || _state.IsSliding)
             {
-                var rayHit = _downRaycastHits[0];
-                float slopeAngle = Vector3.Angle(rayHit.normal, Vector3.up);
-                if (slopeAngle >= _options.SlopeLimitDegrees)
+                if (IsPlacedOnSurface(ctx.Position))
                 {
-                    _state.Velocity = Vector3.ProjectOnPlane(new Vector3(0, ctx.TargetFallSpeed, 0), rayHit.normal);
-                    _state.IsSliding = true;
-                    return;
+                    var rayHit = _downRaycastHits[0];
+                    var angleToSurface = GetAngleToSurface(rayHit.normal);
+                    if (angleToSurface > _options.MinSlidingSlopeAngle)
+                    {
+                        if (!_state.IsSliding)
+                        {
+                            _state.IsSliding = true;
+                            ctx.IsGroundStable = false;
+                            // get current Y velocity if it negative
+                            _slideDownSpeed = Mathf.Max(-ctx.Velocity.y, 0);
+                        }
+                        var velocityDirection = GetSlideVelocityDirection(rayHit.normal);
+                        _state.Velocity = velocityDirection * _slideDownSpeed;
+                        _slideDownSpeed += GetSlideAcceleration(angleToSurface) * Time.deltaTime;
+                        return;
+                    }
+                }
+                if (_state.IsSliding)
+                {
+                    ctx.IsGroundStable = true;
+                    _state.Velocity -= _options.DecelerationFactor * Time.deltaTime * _state.Velocity;
+                    if (_state.Velocity.magnitude > 1)
+                    {
+                        return;
+                    }
+                    _state.Velocity = Vector3.zero;
+                    _state.IsSliding = false;
                 }
             }
-            if (_state.IsSliding)
-            {
-                _state.Velocity -= _options.DecelerationFactor * Time.deltaTime * _state.Velocity;
-                if (_state.Velocity.magnitude > 1)
-                {
-                    return;
-                }
-            }
-            _state.Velocity = Vector3.zero;
-            _state.IsSliding = false;
         }
 
         private readonly SlopeSlideMovementState _state = new();
         private readonly SlopeSlideMovementOptions _options;
         private readonly RaycastHit[] _downRaycastHits = new RaycastHit[1];
+        private float _slideDownSpeed;
+        private float _frictionCoefficient;
+        private float _lastSlopeLimitDegrees;
+
+        private static float GetAngleToSurface(Vector3 normal) => Vector3.Angle(normal, Vector3.up);
+
+        private static Vector3 GetSlideVelocityDirection(Vector3 normal)
+        {
+            return Vector3.ProjectOnPlane(Vector3.down, normal).normalized;
+        }
+
+        private bool IsPlacedOnSurface(Vector3 position)
+        {
+            return Physics.RaycastNonAlloc(position, Vector3.down, _downRaycastHits, _options.MaxDistanceToSlope) > 0;
+        }
+
+        private float GetFriction()
+        {
+            if (_options.MinSlidingSlopeAngle != _lastSlopeLimitDegrees)
+            {
+                _lastSlopeLimitDegrees = _options.MinSlidingSlopeAngle;
+                _frictionCoefficient = Mathf.Tan(_lastSlopeLimitDegrees * Mathf.Deg2Rad);
+            }
+            return _frictionCoefficient;
+        }
+
+        private float GetSlideAcceleration(float slopeAngle)
+        {
+            var slopeAngleRad = slopeAngle * Mathf.Deg2Rad; 
+            var frictionCoefficient = GetFriction();
+            return -_options.Gravity * (Mathf.Sin(slopeAngleRad) - frictionCoefficient * Mathf.Cos(slopeAngleRad));
+        }
     }
 }

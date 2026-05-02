@@ -52,7 +52,7 @@ namespace KarenKrill.UniCore.Movement
         }
         protected virtual void Update()
         {
-            float gravity = Mathf.Abs(Physics.gravity.y) * _gravityMultiplier * _gravityModifier;
+            float gravityAcceleration = Mathf.Abs(Physics.gravity.y) * _gravityMultiplier * _gravityModifier;
             _isGrounded = _characterController.isGrounded;
             if (_isGrounded)
             {
@@ -60,14 +60,14 @@ namespace KarenKrill.UniCore.Movement
             }
             _isGroundedRecently = Time.time - _lastGroundedTime <= _pulseUpGracePeriod;
 
-            if (_isGroundedRecently || _slopeSlideMovement.IsActive)
-            {
-                _slopeSlideOptions.SlopeLimitDegrees = _characterController.slopeLimit;
-                _slopeSlideOptions.DecelerationFactor = _slidingDecelerationFactor;
-                _slopeSlideCtx.TargetPosition = _characterController.transform.position;
-                _slopeSlideCtx.TargetFallSpeed = _fallSpeed;
-                _slopeSlideMovement.Update(_slopeSlideCtx);
-            }
+            _slopeSlideOptions.MinSlidingSlopeAngle = _characterController.slopeLimit;
+            _slopeSlideOptions.MaxDistanceToSlope = _maxDistanceToSlope;
+            _slopeSlideOptions.DecelerationFactor = _slidingDecelerationFactor;
+            _slopeSlideCtx.Position = _characterController.transform.position;
+            _slopeSlideCtx.Velocity = _characterController.velocity;
+            _slopeSlideCtx.IsGrounded = _isGrounded;
+            _slopeSlideCtx.IsGroundedCoyote = _isGroundedRecently;
+            _slopeSlideMovement.Update(_slopeSlideCtx);
 
             if (_isGrounded && _slopeSlideCtx.IsGroundStable)
             {
@@ -75,7 +75,7 @@ namespace KarenKrill.UniCore.Movement
             }
             else
             {
-                _fallSpeed -= gravity * Time.deltaTime;
+                _fallSpeed -= gravityAcceleration * Time.deltaTime;
             }
 
             // Check on falling
@@ -84,14 +84,14 @@ namespace KarenKrill.UniCore.Movement
                 _characterController.stepOffset = _characterControllerStepOffset;
                 _isGrounded = true;
                 _isPulsedUp = false;
-                if (!_slopeSlideMovement.IsActive)
+                if (_slopeSlideCtx.IsGroundStable)
                 {
                     if (Time.time - _pulseUpStartTime <= _pulseUpGracePeriod) // pulsed up recently
                     {
                         _isPulsedUp = true;
                         _pulseUpStartTime = null;
                         _lastGroundedTime = null;
-                        _fallSpeed = Mathf.Sqrt(_pulseUpDistance * 3 * gravity);
+                        _fallSpeed = Mathf.Sqrt(_pulseUpDistance * 3 * gravityAcceleration);
                     }
                 }
             }
@@ -171,6 +171,8 @@ namespace KarenKrill.UniCore.Movement
         [SerializeField]
         private float _slidingDecelerationFactor = 3f;
         [SerializeField]
+        private float _maxDistanceToSlope = 2f;
+        [SerializeField]
         private bool _useRootMotion = false;
         /// <summary>
         /// Use MoveDirection towards or LookDirection for character rotation
@@ -178,8 +180,8 @@ namespace KarenKrill.UniCore.Movement
         [SerializeField]
         private bool _thirdPerson = false;
 
-        private readonly SlopeSlideMovementOptions _slopeSlideOptions = new(0, 0);
-        private readonly SlopeSlideMovementContext _slopeSlideCtx = new(Vector3.zero, 0, false);
+        private readonly SlopeSlideMovementOptions _slopeSlideOptions = new(0, 0, Physics.gravity.y, 0);
+        private readonly SlopeSlideMovementContext _slopeSlideCtx = new(Vector3.zero, Vector3.zero, true, true, true);
         private SlopeSlideMovement _slopeSlideMovement;
 
         private bool _isPulsedUp = false, _isGrounded = false, _isGroundedRecently = false;

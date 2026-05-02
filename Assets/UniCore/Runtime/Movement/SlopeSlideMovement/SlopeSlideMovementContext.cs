@@ -7,16 +7,30 @@ namespace KarenKrill.UniCore.Movement
     public class SlopeSlideMovementContext
     {
         [field: SerializeField]
-        public Vector3 TargetPosition { get; set; }
+        public Vector3 Position { get; set; }
+
         [field: SerializeField]
-        public float TargetFallSpeed { get; set; }
+        public Vector3 Velocity { get; set; }
+
+        [field: SerializeField]
+        public bool IsGrounded { get; set; }
+
+        /// <summary>Latent version of <see cref="IsGrounded"/></summary>
+        /// <remarks>
+        /// Technique, that grants players a tiny "grace period" to do something after walking off a platform
+        /// </remarks>
+        [field: SerializeField]
+        public bool IsGroundedCoyote { get; set; }
+
         [field: SerializeField]
         public bool IsGroundStable { get; set; }
 
-        public SlopeSlideMovementContext(Vector3 targetPosition, float targetFallSpeed, bool isGroundStable)
+        public SlopeSlideMovementContext(Vector3 position, Vector3 velocity, bool isGrounded = false, bool isGroundedCoyote = false, bool isGroundStable = false)
         {
-            TargetPosition = targetPosition;
-            TargetFallSpeed = targetFallSpeed;
+            Position = position;
+            Velocity = velocity;
+            IsGrounded = isGrounded;
+            IsGroundedCoyote = isGroundedCoyote;
             IsGroundStable = isGroundStable;
         }
     }
