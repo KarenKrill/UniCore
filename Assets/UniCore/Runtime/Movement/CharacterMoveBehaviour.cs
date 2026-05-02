@@ -196,16 +196,24 @@ namespace KarenKrill.UniCore.Movement
         private bool TryUpdateVelocity(Vector3 direction, float directionMagnitude, [NotNullWhen(true)] out Vector3? velocity)
         {
             velocity = null;
-            if (_slopeSlideMovement.IsActive)
-            {
-                velocity = _slopeSlideMovement.Velocity;
-            }
-            else if (!_useRootMotion)
+            if (!_useRootMotion)
             {
                 var maxSpeed = _isGrounded ? _maximumSpeed : _inAirHorizontalSpeed;
                 float speed = directionMagnitude * maxSpeed;
-                velocity = speed * direction;
-                velocity = new(velocity.Value.x, _fallSpeed, velocity.Value.z);
+                var inputVelocity = speed * direction;
+                inputVelocity = new(inputVelocity.x, _fallSpeed, inputVelocity.z);
+                velocity = inputVelocity;
+            }
+            if (_slopeSlideMovement.IsActive)
+            {
+                if (velocity != null)
+                {
+                    velocity += _slopeSlideMovement.Velocity;
+                }
+                else
+                {
+                    velocity = _slopeSlideMovement.Velocity;
+                }
             }
             return velocity is not null;
         }
