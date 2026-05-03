@@ -16,6 +16,7 @@ namespace KarenKrill.UniCore.Movement
         public bool IsSliding => _slopeSlideMovement.IsActive;
         public bool IsFalling => _fallSpeed > 0;
         public bool IsPulsedUp => _isPulsedUp;
+        public bool ThirdPersonMode { get => _thirdPerson; set => _thirdPerson = value; }
 
         public bool EnableCharController { get => _characterController.enabled; set => _characterController.enabled = value; }
         public Vector3 MoveDirection { get => _moveDirection; set => _moveDirection = value; }
