@@ -1,0 +1,26 @@
+﻿<Solution>
+  <Project Path="KarenKrill.UniCore.Interactions.csproj" />
+  <Project Path="KarenKrill.UniCore.Movement.csproj" />
+  <Project Path="KarenKrill.UniCore.UI.Presenters.Abstractions.csproj" />
+  <Project Path="KarenKrill.UniCore.Interactions.Abstractions.csproj" />
+  <Project Path="KarenKrill.UniCore.PathFinding.csproj" />
+  <Project Path="KarenKrill.UniCore.Storytelling.csproj" />
+  <Project Path="KarenKrill.UniCore.StateSystem.csproj" />
+  <Project Path="KarenKrill.UniCore.Diagnostics.Abstractions.csproj" />
+  <Project Path="KarenKrill.UniCore.Input.Abstractions.csproj" />
+  <Project Path="KarenKrill.UniCore.StateSystem.Abstractions.csproj" />
+  <Project Path="KarenKrill.UniCore.ProceduralGeneration.csproj" />
+  <Project Path="KarenKrill.UniCore.Utilities.csproj" />
+  <Project Path="KarenKrill.UniCore.Logging.csproj" />
+  <Project Path="KarenKrill.UniCore.Movement.Samples.csproj" />
+  <Project Path="KarenKrill.UniCore.UI.Views.csproj" />
+  <Project Path="KarenKrill.UniCore.GameFlow.Abstractions.csproj" />
+  <Project Path="KarenKrill.UniCore.UI.Views.Abstractions.csproj" />
+  <Project Path="KarenKrill.UniCore.Strategies.Abstractions.csproj" />
+  <Project Path="KarenKrill.UniCore.Instantiattion.Abstractions.csproj" />
+  <Project Path="KarenKrill.UniCore.Storytelling.Abstractions.csproj" />
+  <Project Path="Assembly-CSharp.csproj" />
+  <Project Path="KarenKrill.UniCore.Diagnostics.csproj" />
+  <Project Path="KarenKrill.UniCore.Instantiattion.csproj" />
+  <Project Path="KarenKrill.UniCore.UI.Presenters.csproj" />
+</Solution>
