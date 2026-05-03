@@ -13,5 +13,16 @@
     "name": "KarenKrill",
     "email": "vampart1997@gmail.com",
     "url": "https://github.com/KarenKrill"
-  }
+  },
+  "dependencies": {
+    "com.unity.cinemachine": "3.1.6",
+    "com.unity.inputsystem": "1.19.0"
+  },
+  "Samples": [
+    {
+      "displayName": "Movement Samples",
+      "description": "Contains movement samples for the Universal render pipeline",
+      "path": "Samples~/MovementSamples"
+    }
+  ]
 }

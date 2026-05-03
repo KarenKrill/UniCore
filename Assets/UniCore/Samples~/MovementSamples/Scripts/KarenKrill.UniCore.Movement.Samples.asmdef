@@ -1,0 +1,19 @@
+{
+    "name": "KarenKrill.UniCore.Movement.Samples",
+    "rootNamespace": "KarenKrill.UniCore.Movement.Samples",
+    "references": [
+        "GUID:4307f53044263cf4b835bd812fc161a4",
+        "GUID:75469ad4d38634e559750d17036d5f7c",
+        "GUID:6addbca9397d996498e0383e39055c8f",
+        "GUID:867365d2d04fdd64eb5522a0a288ea9a"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}
