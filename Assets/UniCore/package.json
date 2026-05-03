@@ -18,7 +18,7 @@
     "com.unity.cinemachine": "3.1.6",
     "com.unity.inputsystem": "1.19.0"
   },
-  "Samples": [
+  "samples": [
     {
       "displayName": "Movement Samples",
       "description": "Contains movement samples for the Universal render pipeline",
