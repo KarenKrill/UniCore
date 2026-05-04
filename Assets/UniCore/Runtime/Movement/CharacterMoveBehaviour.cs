@@ -53,7 +53,6 @@ namespace KarenKrill.UniCore.Movement
         }
         protected virtual void Update()
         {
-            float gravityAcceleration = Mathf.Abs(Physics.gravity.y) * _gravityMultiplier * _gravityModifier;
             _isGrounded = _characterController.isGrounded;
             if (_isGrounded)
             {
@@ -61,51 +60,6 @@ namespace KarenKrill.UniCore.Movement
             }
             _isGroundedRecently = Time.time - _lastGroundedTime <= _pulseUpGracePeriod;
 
-            _slopeSlideOptions.MinSlidingSlopeAngle = _characterController.slopeLimit;
-            _slopeSlideOptions.MaxDistanceToSlope = _maxDistanceToSlope;
-            _slopeSlideOptions.DecelerationFactor = _slidingDecelerationFactor;
-            _slopeSlideCtx.Position = _characterController.transform.position;
-            _slopeSlideCtx.Velocity = _characterController.velocity;
-            _slopeSlideCtx.IsGrounded = _isGrounded;
-            _slopeSlideCtx.IsGroundedCoyote = _isGroundedRecently;
-            _slopeSlideMovement.Update(_slopeSlideCtx);
-
-            if (_isGrounded && _slopeSlideCtx.IsGroundStable)
-            {
-                _fallSpeed = -2f; // to prevent isGrounded false positives
-            }
-            else
-            {
-                _fallSpeed -= gravityAcceleration * Time.deltaTime;
-            }
-
-            // Check on falling
-            if (_isGroundedRecently)
-            {
-                _characterController.stepOffset = _characterControllerStepOffset;
-                _isGrounded = true;
-                _isPulsedUp = false;
-                if (_slopeSlideCtx.IsGroundStable)
-                {
-                    if (Time.time - _pulseUpStartTime <= _pulseUpGracePeriod) // pulsed up recently
-                    {
-                        _isPulsedUp = true;
-                        _pulseUpStartTime = null;
-                        _lastGroundedTime = null;
-                        _fallSpeed = Mathf.Sqrt(_pulseUpDistance * 3 * gravityAcceleration);
-                    }
-                }
-            }
-            else
-            {
-                _characterController.stepOffset = 0; // fix stuck in the wall while jumping
-                if ((_isPulsedUp && _fallSpeed < 0) || _fallSpeed < -2f)
-                {
-                    _isGrounded = false;
-                }
-            }
-
-            // Direction & DirectionInputMagnitude usings
             var cameraRelativeQuaternion = Quaternion.AngleAxis(_cameraTransform.rotation.eulerAngles.y, Vector3.up);
             var direction = cameraRelativeQuaternion * _moveDirection;
             var directionMagnitude = direction.magnitude;
@@ -118,13 +72,69 @@ namespace KarenKrill.UniCore.Movement
             {
                 directionMagnitude = Mathf.Clamp(directionMagnitude, 0, SpeedModifier);
             }
-            if (TryUpdateVelocity(direction, directionMagnitude, out var velocity))
+            if (!_useRootMotion)
             {
-                _characterController.Move(velocity.Value * Time.deltaTime);
+                var maxSpeed = _isGrounded ? _maximumSpeed : _inAirHorizontalSpeed;
+                float speed = directionMagnitude * maxSpeed;
+                var inputVelocity = speed * direction;
+                inputVelocity = new(inputVelocity.x, _fallSpeed, inputVelocity.z);
+                _slopeSlideCtx.Velocity = inputVelocity;
             }
+            else
+            {
+                _slopeSlideCtx.Velocity = new(0, _fallSpeed, 0);
+            }
+
+            _slopeSlideOptions.MinSlidingSlopeAngle = _characterController.slopeLimit;
+            _slopeSlideOptions.MaxDistanceToSlope = _maxDistanceToSlope;
+            _slopeSlideOptions.DecelerationFactor = _slidingDecelerationFactor;
+            _slopeSlideCtx.Position = _characterController.transform.position;
+            _slopeSlideCtx.IsGrounded = _isGrounded;
+            _slopeSlideCtx.IsGroundedCoyote = _isGroundedRecently;
+            _slopeSlideMovement.Update(_slopeSlideCtx);
+
+            float gravityAcceleration = Mathf.Abs(Physics.gravity.y) * _gravityMultiplier * _gravityModifier;
+            // Check on falling
+            if (_isGroundedRecently)
+            {
+                _characterController.stepOffset = _characterControllerStepOffset;
+                _isGrounded = true;
+                _isPulsedUp = false;
+                if (_slopeSlideCtx.IsGroundStable)
+                {
+                    if (Time.time - _pulseUpStartTime <= _pulseUpGracePeriod) // pulsed up recently
+                    {
+                        _isGrounded = false;
+                        _isPulsedUp = true;
+                        _pulseUpStartTime = null;
+                        _lastGroundedTime = null;
+                        _fallSpeed = Mathf.Sqrt(_pulseUpDistance * 3 * gravityAcceleration);
+                        _slopeSlideCtx.Velocity = new(_slopeSlideCtx.Velocity.x, _fallSpeed, _slopeSlideCtx.Velocity.z);
+                    }
+                }
+            }
+            else
+            {
+                _characterController.stepOffset = 0; // fix stuck in the wall while jumping
+                if ((_isPulsedUp && _fallSpeed < 0) || _fallSpeed < -2f)
+                {
+                    _isGrounded = false;
+                }
+            }
+
+            _characterController.Move(_slopeSlideCtx.Velocity * Time.deltaTime);
             if (TryUpdateRotation(cameraRelativeQuaternion, direction, _lookDirection, out var rotation))
             {
                 _characterController.transform.rotation = rotation.Value;
+            }
+
+            if (_isGrounded && _slopeSlideCtx.IsGroundStable)
+            {
+                _fallSpeed = -2f; // to prevent isGrounded false positives
+            }
+            else if (!_isGrounded)
+            {
+                _fallSpeed -= gravityAcceleration * Time.deltaTime;
             }
 
             UpdateAnimationsIfExists(direction, directionMagnitude);
@@ -185,31 +195,6 @@ namespace KarenKrill.UniCore.Movement
         private float _pulseUpDistance = 2.0f, _inAirHorizontalSpeed = 3.0f;
         private float _characterControllerStepOffset;
         private float? _lastGroundedTime, _pulseUpStartTime;
-
-        private bool TryUpdateVelocity(Vector3 direction, float directionMagnitude, [NotNullWhen(true)] out Vector3? velocity)
-        {
-            velocity = null;
-            if (!_useRootMotion)
-            {
-                var maxSpeed = _isGrounded ? _maximumSpeed : _inAirHorizontalSpeed;
-                float speed = directionMagnitude * maxSpeed;
-                var inputVelocity = speed * direction;
-                inputVelocity = new(inputVelocity.x, _fallSpeed, inputVelocity.z);
-                velocity = inputVelocity;
-            }
-            if (_slopeSlideMovement.IsActive)
-            {
-                if (velocity != null)
-                {
-                    velocity += _slopeSlideMovement.Velocity;
-                }
-                else
-                {
-                    velocity = _slopeSlideMovement.Velocity;
-                }
-            }
-            return velocity is not null;
-        }
         
         private bool TryUpdateRotation(Quaternion cameraRelativeQuaternion, Vector3 direction, Vector3 lookDirection, [NotNullWhen(true)] out Quaternion? rotation)
         {

@@ -30,11 +30,12 @@ namespace KarenKrill.UniCore.Movement
                         {
                             _state.IsSliding = true;
                             ctx.IsGroundStable = false;
-                            // get current Y velocity if it negative
-                            _slideDownSpeed = Mathf.Max(-ctx.Velocity.y, 0);
+                            _slideDownSpeed = 0;
                         }
-                        var velocityDirection = GetSlideVelocityDirection(rayHit.normal);
-                        _state.Velocity = velocityDirection * _slideDownSpeed;
+                        var baseVelocity = Vector3.ProjectOnPlane(ctx.Velocity, rayHit.normal);
+                        var slideDirection = GetSlideVelocityDirection(rayHit.normal);
+                        var slideVelocity = slideDirection * _slideDownSpeed;
+                        ctx.Velocity = baseVelocity + slideVelocity;
                         _slideDownSpeed += GetSlideAcceleration(angleToSurface) * Time.deltaTime;
                         return;
                     }
@@ -42,12 +43,12 @@ namespace KarenKrill.UniCore.Movement
                 if (_state.IsSliding)
                 {
                     ctx.IsGroundStable = true;
-                    _state.Velocity -= _options.DecelerationFactor * Time.deltaTime * _state.Velocity;
-                    if (_state.Velocity.magnitude > 1)
+                    ctx.Velocity -= _options.DecelerationFactor * Time.deltaTime * ctx.Velocity;
+                    if (ctx.Velocity.magnitude > 1)
                     {
                         return;
                     }
-                    _state.Velocity = Vector3.zero;
+                    ctx.Velocity = Vector3.zero;
                     _state.IsSliding = false;
                 }
             }
