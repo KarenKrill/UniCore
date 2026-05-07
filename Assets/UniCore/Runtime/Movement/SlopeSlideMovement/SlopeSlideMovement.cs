@@ -16,7 +16,7 @@ namespace KarenKrill.UniCore.Movement
             _options = options ?? new(MinSlidingSlopeAngleDefault, FrictionDefault, BrakingFrictionDefault, Physics.gravity.y, 0);
         }
 
-        public void Update(SlopeSlideMovementContext ctx)
+        public void Update(MovementContext ctx)
         {
             if (ctx.IsGroundedCoyote || _state.IsSliding)
             {

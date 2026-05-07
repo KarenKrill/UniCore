@@ -78,29 +78,29 @@ namespace KarenKrill.UniCore.Movement
                 float speed = directionMagnitude * maxSpeed;
                 var inputVelocity = speed * direction;
                 inputVelocity = new(inputVelocity.x, _fallSpeed, inputVelocity.z);
-                _slopeSlideCtx.Velocity = inputVelocity;
+                _movementCtx.Velocity = inputVelocity;
             }
             else
             {
-                _slopeSlideCtx.Velocity = new(0, _fallSpeed, 0);
+                _movementCtx.Velocity = new(0, _fallSpeed, 0);
             }
+            _movementCtx.Position = _characterController.transform.position;
+            _movementCtx.IsGrounded = _isGrounded;
+            _movementCtx.IsGroundedCoyote = _isGroundedRecently;
 
             _slopeSlideOptions.MinSlidingSlopeAngle = _characterController.slopeLimit;
             _slopeSlideOptions.MaxDistanceToSlope = _maxDistanceToSlope;
             _slopeSlideOptions.Friction = _slopeSlideFriction;
             _slopeSlideOptions.BrakingFriction = _slopeSlideBrakingFriction;
-            _slopeSlideCtx.Position = _characterController.transform.position;
-            _slopeSlideCtx.IsGrounded = _isGrounded;
-            _slopeSlideCtx.IsGroundedCoyote = _isGroundedRecently;
-            _slopeSlideMovement.Update(_slopeSlideCtx);
-            _jumpMovement.Update(_slopeSlideCtx);
+            _slopeSlideMovement.Update(_movementCtx);
+            _jumpMovement.Update(_movementCtx);
 
             float gravityAcceleration = Mathf.Abs(Physics.gravity.y) * _gravityMultiplier * _gravityModifier;
 
-            _fallSpeed = _slopeSlideCtx.Velocity.y;
-            if (_isGrounded != _slopeSlideCtx.IsGrounded)
+            _fallSpeed = _movementCtx.Velocity.y;
+            if (_isGrounded != _movementCtx.IsGrounded)
             {
-                _isGrounded = _slopeSlideCtx.IsGrounded;
+                _isGrounded = _movementCtx.IsGrounded;
                 if (_isGrounded)
                 {
                     _lastGroundedTime = Time.time;
@@ -123,13 +123,13 @@ namespace KarenKrill.UniCore.Movement
                 _characterController.stepOffset = 0; // fix stuck in the wall while jumping
             }
 
-            _characterController.Move(_slopeSlideCtx.Velocity * Time.deltaTime);
+            _characterController.Move(_movementCtx.Velocity * Time.deltaTime);
             if (TryUpdateRotation(cameraRelativeQuaternion, direction, _lookDirection, out var rotation))
             {
                 _characterController.transform.rotation = rotation.Value;
             }
 
-            if (_isGrounded && _slopeSlideCtx.IsGroundStable)
+            if (_isGrounded && _movementCtx.IsGroundStable)
             {
                 _fallSpeed = -2f; // to prevent isGrounded false positives
             }
@@ -189,7 +189,7 @@ namespace KarenKrill.UniCore.Movement
         private bool _thirdPerson = false;
 
         private readonly SlopeSlideMovementOptions _slopeSlideOptions = new(0, 0, 0, Physics.gravity.y, 0);
-        private readonly SlopeSlideMovementContext _slopeSlideCtx = new(Vector3.zero, Vector3.zero, true, true, true);
+        private readonly MovementContext _movementCtx = new(Vector3.zero, Vector3.zero, true, true, true);
         private SlopeSlideMovement _slopeSlideMovement;
         private JumpMovement _jumpMovement;
 
@@ -226,7 +226,7 @@ namespace KarenKrill.UniCore.Movement
         {
             if (_animator != null)
             {
-                var isStableGrounded = _isGrounded && _slopeSlideCtx.IsGroundStable;
+                var isStableGrounded = _isGrounded && _movementCtx.IsGroundStable;
                 _animator.SetFloat(InputMagnitudeHash.Value, directionMagnitude, 0.5f, Time.deltaTime);
                 _animator.SetBool(IsGroundedHash.Value, isStableGrounded);
                 _animator.SetBool(IsJumpingHash.Value, _jumpMovement.IsActive);

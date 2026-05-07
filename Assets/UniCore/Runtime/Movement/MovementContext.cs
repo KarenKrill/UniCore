@@ -4,7 +4,7 @@ using UnityEngine;
 namespace KarenKrill.UniCore.Movement
 {
     [Serializable]
-    public class SlopeSlideMovementContext
+    public class MovementContext
     {
         [field: SerializeField]
         public Vector3 Position { get; set; }
@@ -25,7 +25,7 @@ namespace KarenKrill.UniCore.Movement
         [field: SerializeField]
         public bool IsGroundStable { get; set; }
 
-        public SlopeSlideMovementContext(Vector3 position, Vector3 velocity, bool isGrounded = false, bool isGroundedCoyote = false, bool isGroundStable = false)
+        public MovementContext(Vector3 position, Vector3 velocity, bool isGrounded = false, bool isGroundedCoyote = false, bool isGroundStable = false)
         {
             Position = position;
             Velocity = velocity;

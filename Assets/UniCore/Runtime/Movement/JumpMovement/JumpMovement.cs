@@ -14,7 +14,7 @@ namespace KarenKrill.UniCore.Movement
             _pulseUpGracePeriod = gracePeriod;
             _gravity = gravity;
         }
-        public void Update(SlopeSlideMovementContext ctx)
+        public void Update(MovementContext ctx)
         {
             if (ctx.IsGroundedCoyote)
             {
