@@ -87,7 +87,8 @@ namespace KarenKrill.UniCore.Movement
 
             _slopeSlideOptions.MinSlidingSlopeAngle = _characterController.slopeLimit;
             _slopeSlideOptions.MaxDistanceToSlope = _maxDistanceToSlope;
-            _slopeSlideOptions.DecelerationFactor = _slidingDecelerationFactor;
+            _slopeSlideOptions.Friction = _slopeSlideFriction;
+            _slopeSlideOptions.BrakingFriction = _slopeSlideBrakingFriction;
             _slopeSlideCtx.Position = _characterController.transform.position;
             _slopeSlideCtx.IsGrounded = _isGrounded;
             _slopeSlideCtx.IsGroundedCoyote = _isGroundedRecently;
@@ -171,8 +172,10 @@ namespace KarenKrill.UniCore.Movement
         private float _gravityModifier = 1f;
         [SerializeField]
         private float _gravityMultiplier = 1.5f;
-        [SerializeField]
-        private float _slidingDecelerationFactor = 3f;
+        [SerializeField, Range(0, 1)]
+        private float _slopeSlideFriction = 0.3f;
+        [SerializeField, Range(0, 1)]
+        private float _slopeSlideBrakingFriction = 1f;
         [SerializeField]
         private float _maxDistanceToSlope = 2f;
         [SerializeField]
@@ -185,7 +188,7 @@ namespace KarenKrill.UniCore.Movement
         [SerializeField]
         private bool _thirdPerson = false;
 
-        private readonly SlopeSlideMovementOptions _slopeSlideOptions = new(0, 0, Physics.gravity.y, 0);
+        private readonly SlopeSlideMovementOptions _slopeSlideOptions = new(0, 0, 0, Physics.gravity.y, 0);
         private readonly SlopeSlideMovementContext _slopeSlideCtx = new(Vector3.zero, Vector3.zero, true, true, true);
         private SlopeSlideMovement _slopeSlideMovement;
         private JumpMovement _jumpMovement;

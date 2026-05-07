@@ -6,14 +6,14 @@ namespace KarenKrill.UniCore.Movement
     public class SlopeSlideMovement
     {
         public static readonly float MinSlidingSlopeAngleDefault = 45;
-        public static readonly float DecelerationFactorDefault = 1;
+        public static readonly float FrictionDefault = 0.3f;
+        public static readonly float BrakingFrictionDefault = 1;
 
         public bool IsActive => _state.IsSliding;
-        public Vector3 Velocity => _state.Velocity;
 
         public SlopeSlideMovement(SlopeSlideMovementOptions? options = null)
         {
-            _options = options ?? new(MinSlidingSlopeAngleDefault, DecelerationFactorDefault, Physics.gravity.y, 0);
+            _options = options ?? new(MinSlidingSlopeAngleDefault, FrictionDefault, BrakingFrictionDefault, Physics.gravity.y, 0);
         }
 
         public void Update(SlopeSlideMovementContext ctx)
@@ -24,32 +24,43 @@ namespace KarenKrill.UniCore.Movement
                 {
                     var rayHit = _downRaycastHits[0];
                     var angleToSurface = GetAngleToSurface(rayHit.normal);
-                    if (angleToSurface > _options.MinSlidingSlopeAngle)
+                    var isSlidingAngle = angleToSurface > _options.MinSlidingSlopeAngle;
+                    if (isSlidingAngle)
                     {
                         if (!_state.IsSliding)
                         {
                             _state.IsSliding = true;
+                            _state.Velocity = Vector3.zero;
+                            _state.SlideDownSpeed = -Mathf.Min(ctx.Velocity.y, 0); // take Y if it negative
                             ctx.IsGroundStable = false;
-                            _slideDownSpeed = 0;
                         }
-                        var baseVelocity = Vector3.ProjectOnPlane(ctx.Velocity, rayHit.normal);
+                    }
+                    else if (_state.IsSliding)
+                    {
+                        if (_state.Velocity.magnitude < 1)
+                        {
+                            _state.IsSliding = false;
+                            ctx.IsGroundStable = true;
+                        }
+                    }
+                    if(_state.IsSliding)
+                    {
+                        var acceleration = GetSlideAcceleration(angleToSurface, isSlidingAngle);
+                        var deltaSpeed = acceleration * Time.deltaTime;
                         var slideDirection = GetSlideVelocityDirection(rayHit.normal);
-                        var slideVelocity = slideDirection * _slideDownSpeed;
-                        ctx.Velocity = baseVelocity + slideVelocity;
-                        _slideDownSpeed += GetSlideAcceleration(angleToSurface) * Time.deltaTime;
-                        return;
+                        if (slideDirection != Vector3.zero)
+                        {
+                            _state.LastValidSlideDirection = slideDirection;
+                        }
+                        _state.Velocity = _state.LastValidSlideDirection * _state.SlideDownSpeed;
+                        _state.SlideDownSpeed += deltaSpeed;
+                        ctx.Velocity = _state.Velocity;
                     }
                 }
-                if (_state.IsSliding)
+                else if (_state.IsSliding)
                 {
-                    ctx.IsGroundStable = true;
-                    ctx.Velocity -= _options.DecelerationFactor * Time.deltaTime * ctx.Velocity;
-                    if (ctx.Velocity.magnitude > 1)
-                    {
-                        return;
-                    }
-                    ctx.Velocity = Vector3.zero;
                     _state.IsSliding = false;
+                    ctx.IsGroundStable = true;
                 }
             }
         }
@@ -57,9 +68,6 @@ namespace KarenKrill.UniCore.Movement
         private readonly SlopeSlideMovementState _state = new();
         private readonly SlopeSlideMovementOptions _options;
         private readonly RaycastHit[] _downRaycastHits = new RaycastHit[1];
-        private float _slideDownSpeed;
-        private float _frictionCoefficient;
-        private float _lastSlopeLimitDegrees;
 
         private static float GetAngleToSurface(Vector3 normal) => Vector3.Angle(normal, Vector3.up);
 
@@ -73,21 +81,11 @@ namespace KarenKrill.UniCore.Movement
             return Physics.RaycastNonAlloc(position, Vector3.down, _downRaycastHits, _options.MaxDistanceToSlope) > 0;
         }
 
-        private float GetFriction()
+        private float GetSlideAcceleration(float slopeAngle, bool isSlidingAngle)
         {
-            if (_options.MinSlidingSlopeAngle != _lastSlopeLimitDegrees)
-            {
-                _lastSlopeLimitDegrees = _options.MinSlidingSlopeAngle;
-                _frictionCoefficient = Mathf.Tan(_lastSlopeLimitDegrees * Mathf.Deg2Rad);
-            }
-            return _frictionCoefficient;
-        }
-
-        private float GetSlideAcceleration(float slopeAngle)
-        {
-            var slopeAngleRad = slopeAngle * Mathf.Deg2Rad; 
-            var frictionCoefficient = GetFriction();
-            return -_options.Gravity * (Mathf.Sin(slopeAngleRad) - frictionCoefficient * Mathf.Cos(slopeAngleRad));
+            var slopeAngleRad = slopeAngle * Mathf.Deg2Rad;
+            var friction = isSlidingAngle ? _options.Friction : _options.BrakingFriction;
+            return -_options.Gravity * (Mathf.Sin(slopeAngleRad) - friction * Mathf.Cos(slopeAngleRad));
         }
     }
 }

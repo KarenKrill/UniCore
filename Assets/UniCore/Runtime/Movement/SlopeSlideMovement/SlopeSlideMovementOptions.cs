@@ -13,10 +13,16 @@ namespace KarenKrill.UniCore.Movement
         public float MinSlidingSlopeAngle { get; set; }
 
         /// <summary>
-        /// A coefficient that affects the speed at which a character's inertial movement stops after sliding
+        /// The coefficient of friction of a character sliding down a slope. Affects the character's sliding speed.
         /// </summary>
-        [field: SerializeField]
-        public float DecelerationFactor { get; set; }
+        [field: SerializeField, Range(0, 1)]
+        public float Friction { get; set; }
+
+        /// <summary>
+        /// The coefficient of friction when the character brakes after sliding down a slope. Affects the character's braking speed.
+        /// </summary>
+        [field: SerializeField, Range(0, 1)]
+        public float BrakingFriction { get; set; }
 
         /// <summary>Gravity acceleration</summary>
         /// <remarks>In normal cases, it should be negative</remarks>
@@ -29,10 +35,11 @@ namespace KarenKrill.UniCore.Movement
         [field: SerializeField]
         public float MaxDistanceToSlope { get; set; }
 
-        public SlopeSlideMovementOptions(float slopeLimitDegrees, float decelerationFactor, float gravity, float maxDistanceToSlope)
+        public SlopeSlideMovementOptions(float slopeLimitDegrees, float friction, float brakingFriction, float gravity, float maxDistanceToSlope)
         {
             MinSlidingSlopeAngle = slopeLimitDegrees;
-            DecelerationFactor = decelerationFactor;
+            Friction = friction;
+            BrakingFriction = brakingFriction;
             Gravity = gravity;
             MaxDistanceToSlope = maxDistanceToSlope;
         }
