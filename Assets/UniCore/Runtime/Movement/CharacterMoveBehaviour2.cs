@@ -242,7 +242,7 @@ namespace KarenKrill.UniCore.Movement
             private Vector3 _vector;
             private bool _isDirty;
 
-            private bool FloatEpsilonNotEquals(float a, float b) => Mathf.Abs(Mathf.Abs(a) - Mathf.Abs(b)) > Mathf.Epsilon;
+            private bool FloatEpsilonNotEquals(float a, float b) => Mathf.Abs(a - b) > Mathf.Epsilon;
         }
     }
 }
