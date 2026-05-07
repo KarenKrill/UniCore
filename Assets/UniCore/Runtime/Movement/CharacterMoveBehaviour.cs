@@ -7,7 +7,7 @@ namespace KarenKrill.UniCore.Movement
 {
     public class CharacterMoveBehaviour : MonoBehaviour
     {
-        public float MaximumSpeed { get => _maximumSpeed; set => _maximumSpeed = value; }
+        public float MaximumSpeed { get => _maxSpeed; set => _maxSpeed = value; }
         /// <summary>Range: [0..1]</summary>
         public float SpeedModifier { get => _speedModifier; set => _speedModifier = value; }
         /// <summary>Range: [0..1]</summary>
@@ -24,7 +24,7 @@ namespace KarenKrill.UniCore.Movement
 
         public void PulseUp(float distance, float gracePeriod, float inAirHorizontalSpeed)
         {
-            _inAirHorizontalSpeed = inAirHorizontalSpeed;
+            _maxInAirSpeed = inAirHorizontalSpeed;
             var gravity = Mathf.Abs(Physics.gravity.y) * _gravityMultiplier * _gravityModifier;
             _jumpMovement.PulseUp(distance, gracePeriod, gravity);
         }
@@ -74,7 +74,7 @@ namespace KarenKrill.UniCore.Movement
             }
             if (!_useRootMotion)
             {
-                var maxSpeed = _movementCtx.IsGrounded ? _maximumSpeed : _inAirHorizontalSpeed;
+                var maxSpeed = _movementCtx.IsGrounded ? _maxSpeed : _maxInAirSpeed;
                 float speed = directionMagnitude * maxSpeed;
                 var inputVelocity = speed * direction;
                 inputVelocity = new(inputVelocity.x, _fallSpeed, inputVelocity.z);
@@ -163,7 +163,10 @@ namespace KarenKrill.UniCore.Movement
         [SerializeField]
         private Animator _animator = null;
         [SerializeField]
-        private float _maximumSpeed = 5f, _rotationDegreeSpeed = 360.0f;
+        private float _maxSpeed = 5f, _maxInAirSpeed = 0.5f;
+        /// <summary>Max angular speed in degrees</summary>
+        [SerializeField]
+        private float _maxAngularSpeed = 360.0f;
         [SerializeField, Range(0, 1)]
         private float _speedModifier = 1f;
         [SerializeField, Range(0, 1)]
@@ -194,7 +197,6 @@ namespace KarenKrill.UniCore.Movement
         private Vector3 _moveDirection = Vector3.zero;
         private Vector3 _lookDirection = Vector2.zero;
         private float _fallSpeed;
-        private float _inAirHorizontalSpeed = 3.0f;
         private float _characterControllerStepOffset;
         private float? _lastGroundedTime;
 
@@ -209,7 +211,7 @@ namespace KarenKrill.UniCore.Movement
                 {
                     var directionLookRotation = Quaternion.LookRotation(direction, Vector3.up);
                     var characterRotation = _characterController.transform.rotation;
-                    rotation = Quaternion.RotateTowards(characterRotation, directionLookRotation, _rotationDegreeSpeed * Time.deltaTime);
+                    rotation = Quaternion.RotateTowards(characterRotation, directionLookRotation, _maxAngularSpeed * Time.deltaTime);
                 }
             }
             else if (isMoving || isLooking)
