@@ -585,7 +585,7 @@ MonoBehaviour:
   _maxDistanceToSlope: 2
   _coyoteTime: 0.2
   _useRootMotion: 0
-  _thirdPerson: 0
+  _cameraType: 0
 --- !u!114 &654529770
 MonoBehaviour:
   m_ObjectHideFlags: 0

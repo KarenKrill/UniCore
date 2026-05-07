@@ -23,11 +23,6 @@ namespace KarenKrill.UniCore.Movement
         /// </remarks>
         Flying
     }
-    public enum CameraType
-    {
-        FirstPerson,
-        ThirdPerson
-    }
 
     public class CharacterMoveBehaviour2 : MonoBehaviour
     {

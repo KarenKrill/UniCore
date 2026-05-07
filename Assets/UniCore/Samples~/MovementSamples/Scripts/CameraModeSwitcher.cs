@@ -27,17 +27,19 @@ public class CameraModeSwitcher : MonoBehaviour
 
     private void OnSwitchActionPerformed(InputAction.CallbackContext ctx)
     {
-        var isThirdPersonModeActive = _characterMoveBehaviour.ThirdPersonMode;
-        if (isThirdPersonModeActive)
+        var cameraType = _characterMoveBehaviour.CameraType;
+        if (cameraType == KarenKrill.UniCore.Movement.CameraType.ThirdPerson)
         {
             _thirdPersonCamera.gameObject.SetActive(false);
             _fpsCamera.gameObject.SetActive(true);
+            cameraType = KarenKrill.UniCore.Movement.CameraType.FirstPerson;
         }
         else
         {
             _fpsCamera.gameObject.SetActive(false);
             _thirdPersonCamera.gameObject.SetActive(true);
+            cameraType = KarenKrill.UniCore.Movement.CameraType.ThirdPerson;
         }
-        _characterMoveBehaviour.ThirdPersonMode = !isThirdPersonModeActive;
+        _characterMoveBehaviour.CameraType = cameraType;
     }
 }

@@ -16,7 +16,7 @@ namespace KarenKrill.UniCore.Movement
         public bool IsSliding => _slopeSlideMovement.IsActive;
         public bool IsFalling => _fallSpeed > 0;
         public bool IsPulsedUp => _jumpMovement.IsActive;
-        public bool ThirdPersonMode { get => _thirdPerson; set => _thirdPerson = value; }
+        public CameraType CameraType { get => _cameraType; set => _cameraType = value; }
 
         public bool EnableCharController { get => _characterController.enabled; set => _characterController.enabled = value; }
         public Vector3 MoveDirection { get => _moveDirection; set => _moveDirection = value; }
@@ -184,10 +184,11 @@ namespace KarenKrill.UniCore.Movement
         [SerializeField]
         private bool _useRootMotion = false;
         /// <summary>
-        /// Use MoveDirection towards or LookDirection for character rotation
+        /// Used to rotate character in look direction
         /// </summary>
+        /// <remarks>In firs-person look direction is <see cref="_cameraTransform"/> forward, </remarks>
         [SerializeField]
-        private bool _thirdPerson = false;
+        private CameraType _cameraType = CameraType.FirstPerson;
 
         private readonly SlopeSlideMovementOptions _slopeSlideOptions = new(0, 0, 0, Physics.gravity.y, 0);
         private readonly MovementContext _movementCtx = new(Vector3.zero, Vector3.zero, true, true, true);
@@ -205,7 +206,7 @@ namespace KarenKrill.UniCore.Movement
             bool isMoving = direction != Vector3.zero;
             bool isLooking = lookDirection != Vector3.zero;
             rotation = null;
-            if (_thirdPerson)
+            if (_cameraType == CameraType.ThirdPerson)
             {
                 if (isMoving)
                 {
