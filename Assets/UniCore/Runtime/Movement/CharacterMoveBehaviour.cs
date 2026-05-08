@@ -14,7 +14,7 @@ namespace KarenKrill.UniCore.Movement
         public float GravityModifier { get => _gravityModifier; set => _gravityModifier = value; }
         public bool IsGrounded => _characterController.isGrounded;
         public bool IsSliding => _slopeSlideMovement.IsActive;
-        public bool IsFalling => _fallSpeed > 0;
+        public bool IsFalling => _verticalSpeed > 0;
         public bool IsPulsedUp => _jumpMovement.IsActive;
         public CameraType CameraType { get => _cameraType; set => _cameraType = value; }
 
@@ -22,9 +22,8 @@ namespace KarenKrill.UniCore.Movement
         public Vector3 MoveDirection { get => _moveDirection; set => _moveDirection = value; }
         public Vector2 LookDirection { get => _lookDirection; set => _lookDirection = value; }
 
-        public void PulseUp(float distance, float gracePeriod, float inAirHorizontalSpeed)
+        public void PulseUp(float distance, float gracePeriod)
         {
-            _maxInAirSpeed = inAirHorizontalSpeed;
             var gravity = Mathf.Abs(Physics.gravity.y) * _gravityMultiplier * _gravityModifier;
             _jumpMovement.PulseUp(distance, gracePeriod, gravity);
         }
@@ -77,12 +76,11 @@ namespace KarenKrill.UniCore.Movement
                 var maxSpeed = _movementCtx.IsGrounded ? _maxSpeed : _maxInAirSpeed;
                 float speed = directionMagnitude * maxSpeed;
                 var inputVelocity = speed * direction;
-                inputVelocity = new(inputVelocity.x, _fallSpeed, inputVelocity.z);
-                _movementCtx.Velocity = inputVelocity;
+                _movementCtx.Velocity = new(inputVelocity.x, _verticalSpeed, inputVelocity.z);
             }
             else
             {
-                _movementCtx.Velocity = new(0, _fallSpeed, 0);
+                _movementCtx.Velocity = new(0, _verticalSpeed, 0);
             }
             _movementCtx.Position = _characterController.transform.position;
             var wasGrounded = _movementCtx.IsGrounded;
@@ -96,7 +94,7 @@ namespace KarenKrill.UniCore.Movement
 
             float gravityAcceleration = Mathf.Abs(Physics.gravity.y) * _gravityMultiplier * _gravityModifier;
 
-            _fallSpeed = _movementCtx.Velocity.y;
+            _verticalSpeed = _movementCtx.Velocity.y;
             if (wasGrounded != _movementCtx.IsGrounded)
             {
                 if (_movementCtx.IsGrounded)
@@ -129,11 +127,20 @@ namespace KarenKrill.UniCore.Movement
 
             if (_movementCtx.IsGrounded && _movementCtx.IsGroundStable)
             {
-                _fallSpeed = -2f; // to prevent isGrounded false positives
+                _verticalSpeed = -2f; // to prevent isGrounded false positives
             }
             else if (!_movementCtx.IsGrounded)
             {
-                _fallSpeed -= gravityAcceleration * Time.deltaTime;
+                var deltaSpeed = gravityAcceleration * Time.deltaTime;
+                _verticalSpeed -= deltaSpeed;
+                if (_verticalSpeed > 0)
+                {
+                    _verticalSpeed = Mathf.Min(_verticalSpeed, _maxFallSpeed);
+                }
+                else
+                {
+                    _verticalSpeed = Mathf.Max(_verticalSpeed, -_maxFallSpeed);
+                }
             }
 
             UpdateAnimationsIfExists(direction, directionMagnitude);
@@ -144,7 +151,7 @@ namespace KarenKrill.UniCore.Movement
             if (_useRootMotion && _animator != null && _movementCtx.IsGrounded && _movementCtx.IsGroundStable)
             {
                 Vector3 velocity = _animator.deltaPosition;
-                velocity.y = _fallSpeed * Time.deltaTime;
+                velocity.y = _verticalSpeed * Time.deltaTime;
                 _characterController.Move(velocity);
             }
         }
@@ -167,6 +174,8 @@ namespace KarenKrill.UniCore.Movement
         /// <summary>Max angular speed in degrees</summary>
         [SerializeField]
         private float _maxAngularSpeed = 360.0f;
+        [SerializeField, Min(0)]
+        private float _maxFallSpeed = 100;
         [SerializeField, Range(0, 1)]
         private float _speedModifier = 1f;
         [SerializeField, Range(0, 1)]
@@ -197,7 +206,7 @@ namespace KarenKrill.UniCore.Movement
 
         private Vector3 _moveDirection = Vector3.zero;
         private Vector3 _lookDirection = Vector2.zero;
-        private float _fallSpeed;
+        private float _verticalSpeed;
         private float _characterControllerStepOffset;
         private float? _lastGroundedTime;
 

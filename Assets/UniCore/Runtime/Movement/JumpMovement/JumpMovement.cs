@@ -27,7 +27,7 @@ namespace KarenKrill.UniCore.Movement
                         ctx.IsGrounded = false;
                         _isPulsedUp = true;
                         _pulseUpStartTime = null;
-                        var speed = Mathf.Sqrt(_pulseUpDistance * 3 * _gravity);
+                        var speed = Mathf.Sqrt(2 * _pulseUpDistance * _gravity);
                         var velocity = new Vector3(ctx.Velocity.x, speed, ctx.Velocity.z);
                         ctx.Velocity = velocity;
                     }

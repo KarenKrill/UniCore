@@ -556,8 +556,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: KarenKrill.UniCore.Movement::KarenKrill.UniCore.Movement.InputCharacterMoveContoller
   _characterMoveBehaviour: {fileID: 654529769}
-  _jumpHeight: 5
-  _jumpHorizontalSpeed: 7
+  _jumpHeight: 2
   _jumpButtonGracePeriod: 0.2
 --- !u!114 &654529769
 MonoBehaviour:
@@ -574,9 +573,10 @@ MonoBehaviour:
   _characterController: {fileID: 813824130}
   _cameraTransform: {fileID: 0}
   _animator: {fileID: 806758365}
-  _maxSpeed: 5
-  _maxInAirSpeed: 0.5
+  _maxSpeed: 3
+  _maxInAirSpeed: 5
   _maxAngularSpeed: 360
+  _maxFallSpeed: 30
   _speedModifier: 1
   _gravityModifier: 1
   _gravityMultiplier: 1.5
