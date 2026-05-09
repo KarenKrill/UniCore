@@ -1,11 +1,16 @@
 ﻿#nullable enable
+using System;
 using UnityEngine;
 
 namespace KarenKrill.UniCore.Movement
 {
-    public class JumpMovement
+    [Serializable]
+    public class JumpMovement : IMoveAbility
     {
         public bool IsActive => _isPulsedUp;
+
+        [field: SerializeField]
+        public bool Enabled { get; set; } = true;
 
         public void PulseUp(float distance, float gracePeriod, float gravity)
         {
@@ -16,7 +21,7 @@ namespace KarenKrill.UniCore.Movement
         }
         public void Update(MovementContext ctx)
         {
-            if (ctx.IsGroundedCoyote)
+            if (Enabled && ctx.IsGroundedCoyote)
             {
                 if (ctx.IsGroundStable)
                 {

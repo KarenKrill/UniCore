@@ -1,24 +1,36 @@
 ﻿#nullable enable
+using System;
 using UnityEngine;
 
 namespace KarenKrill.UniCore.Movement
 {
-    public class SlopeSlideMovement
+    [Serializable]
+    public class SlopeSlideMovement : IMoveAbility
     {
         public static readonly float MinSlidingSlopeAngleDefault = 45;
         public static readonly float FrictionDefault = 0.3f;
         public static readonly float BrakingFrictionDefault = 1;
+        public static readonly float MaxDistanceToSlopeDefault = 10;
 
         public bool IsActive => _state.IsSliding;
 
-        public SlopeSlideMovement(SlopeSlideMovementOptions? options = null)
+        [field: SerializeField]
+        public bool Enabled { get; set; } = true;
+
+        public SlopeSlideMovementOptions Options => _options;
+
+        public SlopeSlideMovement()
         {
-            _options = options ?? new(MinSlidingSlopeAngleDefault, FrictionDefault, BrakingFrictionDefault, Physics.gravity.y, 0);
+            _options = new(MinSlidingSlopeAngleDefault, FrictionDefault, BrakingFrictionDefault, Physics.gravity.y, MaxDistanceToSlopeDefault);
+        }
+        public SlopeSlideMovement(SlopeSlideMovementOptions options)
+        {
+            _options = options;
         }
 
         public void Update(MovementContext ctx)
         {
-            if (ctx.IsGroundedCoyote || _state.IsSliding)
+            if (Enabled && (ctx.IsGroundedCoyote || _state.IsSliding))
             {
                 if (IsPlacedOnSurface(ctx.Position))
                 {
@@ -65,8 +77,10 @@ namespace KarenKrill.UniCore.Movement
             }
         }
 
+        [SerializeField]
+        private SlopeSlideMovementOptions _options;
+
         private readonly SlopeSlideMovementState _state = new();
-        private readonly SlopeSlideMovementOptions _options;
         private readonly RaycastHit[] _downRaycastHits = new RaycastHit[1];
 
         private static float GetAngleToSurface(Vector3 normal) => Vector3.Angle(normal, Vector3.up);

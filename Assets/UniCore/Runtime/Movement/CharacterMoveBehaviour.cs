@@ -1,37 +1,37 @@
 ﻿using KarenKrill.UniCore.Utilities;
 using System;
+using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
+using System.Linq;
 using UnityEngine;
 
 namespace KarenKrill.UniCore.Movement
 {
+    [Serializable]
     public class CharacterMoveBehaviour : MonoBehaviour
     {
-        public float MaximumSpeed { get => _maxSpeed; set => _maxSpeed = value; }
         /// <summary>Range: [0..1]</summary>
         public float SpeedModifier { get => _speedModifier; set => _speedModifier = value; }
         /// <summary>Range: [0..1]</summary>
         public float GravityModifier { get => _gravityModifier; set => _gravityModifier = value; }
-        public bool IsGrounded => _characterController.isGrounded;
-        public bool IsSliding => _slopeSlideMovement.IsActive;
-        public bool IsFalling => _verticalSpeed > 0;
-        public bool IsPulsedUp => _jumpMovement.IsActive;
+        public bool IsPulsedUp => TryGetAbility<JumpMovement>(out var jumpAbility) && jumpAbility.IsActive;
         public CameraType CameraType { get => _cameraType; set => _cameraType = value; }
 
-        public bool EnableCharController { get => _characterController.enabled; set => _characterController.enabled = value; }
         public Vector3 MoveDirection { get => _moveDirection; set => _moveDirection = value; }
         public Vector2 LookDirection { get => _lookDirection; set => _lookDirection = value; }
+        public IList<IMoveAbility> Abilities => _abilities;
 
         public void PulseUp(float distance, float gracePeriod)
         {
             var gravity = Mathf.Abs(Physics.gravity.y) * _gravityMultiplier * _gravityModifier;
-            _jumpMovement.PulseUp(distance, gracePeriod, gravity);
+            if (TryGetAbility<JumpMovement>(out var jumpMovement))
+            {
+                jumpMovement.PulseUp(distance, gracePeriod, gravity);
+            }
         }
 
         protected virtual void Awake()
         {
-            _slopeSlideMovement = new(_slopeSlideOptions);
-            _jumpMovement = new();
             if (_cameraTransform == null)
             {
                 _cameraTransform = Camera.main.transform;
@@ -85,14 +85,18 @@ namespace KarenKrill.UniCore.Movement
             _movementCtx.Position = _characterController.transform.position;
             var wasGrounded = _movementCtx.IsGrounded;
 
-            _slopeSlideOptions.MinSlidingSlopeAngle = _characterController.slopeLimit;
-            _slopeSlideOptions.MaxDistanceToSlope = _maxDistanceToSlope;
-            _slopeSlideOptions.Friction = _slopeSlideFriction;
-            _slopeSlideOptions.BrakingFriction = _slopeSlideBrakingFriction;
-            _slopeSlideMovement.Update(_movementCtx);
-            _jumpMovement.Update(_movementCtx);
-
-            float gravityAcceleration = Mathf.Abs(Physics.gravity.y) * _gravityMultiplier * _gravityModifier;
+            if (TryGetAbility<SlopeSlideMovement>(out var slopeSlideAbility))
+            {
+                slopeSlideAbility.Options.MinSlidingSlopeAngle = _characterController.slopeLimit;
+                slopeSlideAbility.Options.Gravity = Physics.gravity.y;
+            }
+            foreach (var ability in _abilities)
+            {
+                if (ability?.Enabled ?? false)
+                {
+                    ability.Update(_movementCtx);
+                }
+            }
 
             _verticalSpeed = _movementCtx.Velocity.y;
             if (wasGrounded != _movementCtx.IsGrounded)
@@ -131,6 +135,7 @@ namespace KarenKrill.UniCore.Movement
             }
             else if (!_movementCtx.IsGrounded)
             {
+                float gravityAcceleration = Mathf.Abs(Physics.gravity.y) * _gravityMultiplier * _gravityModifier;
                 var deltaSpeed = gravityAcceleration * Time.deltaTime;
                 _verticalSpeed -= deltaSpeed;
                 if (_verticalSpeed > 0)
@@ -182,12 +187,6 @@ namespace KarenKrill.UniCore.Movement
         private float _gravityModifier = 1f;
         [SerializeField]
         private float _gravityMultiplier = 1.5f;
-        [SerializeField, Range(0, 1)]
-        private float _slopeSlideFriction = 0.3f;
-        [SerializeField, Range(0, 1)]
-        private float _slopeSlideBrakingFriction = 1f;
-        [SerializeField]
-        private float _maxDistanceToSlope = 2f;
         [SerializeField]
         private float _coyoteTime = 0.2f;
         [SerializeField]
@@ -198,17 +197,22 @@ namespace KarenKrill.UniCore.Movement
         /// <remarks>In firs-person look direction is <see cref="_cameraTransform"/> forward, </remarks>
         [SerializeField]
         private CameraType _cameraType = CameraType.FirstPerson;
+        [SerializeReference, SerializeInterface]
+        private List<IMoveAbility> _abilities = new();
 
-        private readonly SlopeSlideMovementOptions _slopeSlideOptions = new(0, 0, 0, Physics.gravity.y, 0);
         private readonly MovementContext _movementCtx = new(Vector3.zero, Vector3.zero, true, true, true);
-        private SlopeSlideMovement _slopeSlideMovement;
-        private JumpMovement _jumpMovement;
 
         private Vector3 _moveDirection = Vector3.zero;
         private Vector3 _lookDirection = Vector2.zero;
         private float _verticalSpeed;
         private float _characterControllerStepOffset;
         private float? _lastGroundedTime;
+
+        private bool TryGetAbility<T>([NotNullWhen(true)] out T ability) where T : IMoveAbility
+        {
+            ability = (T)_abilities.FirstOrDefault(ability => ability is T);
+            return ability is not null;
+        }
 
         private bool TryUpdateRotation(Quaternion cameraRelativeQuaternion, Vector3 direction, Vector3 lookDirection, [NotNullWhen(true)] out Quaternion? rotation)
         {
@@ -238,7 +242,7 @@ namespace KarenKrill.UniCore.Movement
                 var isStableGrounded = _movementCtx.IsGrounded && _movementCtx.IsGroundStable;
                 _animator.SetFloat(InputMagnitudeHash.Value, directionMagnitude, 0.5f, Time.deltaTime);
                 _animator.SetBool(IsGroundedHash.Value, isStableGrounded);
-                _animator.SetBool(IsJumpingHash.Value, _jumpMovement.IsActive);
+                _animator.SetBool(IsJumpingHash.Value, IsPulsedUp);
                 _animator.SetBool(IsFallingHash.Value, !isStableGrounded);
                 _animator.SetBool(IsMovingHash.Value, direction != Vector3.zero);
                 _animator.SetBool(IsLookingHash.Value, _lookDirection != Vector3.zero);

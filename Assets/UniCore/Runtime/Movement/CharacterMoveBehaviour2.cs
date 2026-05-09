@@ -23,7 +23,20 @@ namespace KarenKrill.UniCore.Movement
         /// </remarks>
         Flying
     }
-
+    /// <summary>
+    /// Реализует:
+    /// 1. Обновляет движение XZ и поворот CharacterController-а с учётом: поворота камеры, нахождения на земле, модификаторов скорости
+    /// 2. Обрабатывает прыжки/падения
+    /// Использует:
+    /// CharacterController.Move - передвинуть по XZ
+    /// CharacterController.transform.rotation - повернуть
+    /// CharacterController.isGrounded - рассчитать высоту Y подъёма/спуска при прыжке/падении
+    /// CharacterController.enabled - включить/выключен когда включают/выключают CharacterMoveBehaviour2
+    /// </summary>
+    /// TODO: разлепить с вводом пользователя, предоставить методы поворота/движения XYZ с определённой скоростью
+    /// Прыжки/падения должны быть реализованы классом выше как механика поверх этой механики или как расширение
+    /// Включения/выключение тоже обязанность вышестоящих классов
+    /// Инпут соединяется в верних классах. Нужно добавить CharMoveInputController со ссылками на InputActions
     public class CharacterMoveBehaviour2 : MonoBehaviour
     {
         public void Initialize(IBasicPlayerActionsProvider playerActionsProvider)

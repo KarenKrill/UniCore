@@ -580,12 +580,29 @@ MonoBehaviour:
   _speedModifier: 1
   _gravityModifier: 1
   _gravityMultiplier: 1.5
-  _slopeSlideFriction: 0.3
-  _slopeSlideBrakingFriction: 1
-  _maxDistanceToSlope: 2
   _coyoteTime: 0.2
   _useRootMotion: 0
   _cameraType: 0
+  _abilities:
+  - rid: 2522238110598430900
+  - rid: 2522238110598430914
+  references:
+    version: 2
+    RefIds:
+    - rid: 2522238110598430900
+      type: {class: SlopeSlideMovement, ns: KarenKrill.UniCore.Movement, asm: KarenKrill.UniCore.Movement}
+      data:
+        <Enabled>k__BackingField: 1
+        _options:
+          <MinSlidingSlopeAngle>k__BackingField: 45
+          <Friction>k__BackingField: 0.3
+          <BrakingFriction>k__BackingField: 1
+          <Gravity>k__BackingField: -9.81
+          <MaxDistanceToSlope>k__BackingField: 2
+    - rid: 2522238110598430914
+      type: {class: JumpMovement, ns: KarenKrill.UniCore.Movement, asm: KarenKrill.UniCore.Movement}
+      data:
+        <Enabled>k__BackingField: 1
 --- !u!114 &654529770
 MonoBehaviour:
   m_ObjectHideFlags: 0
