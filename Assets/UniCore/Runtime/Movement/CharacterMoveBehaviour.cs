@@ -92,15 +92,8 @@ namespace KarenKrill.UniCore.Movement
                 }
             }
 
-            // Check on falling
-            if (_movementCtx.IsGroundedCoyote)
-            {
-                _characterController.stepOffset = _characterControllerStepOffset;
-            }
-            else
-            {
-                _characterController.stepOffset = 0; // fix stuck in the wall while jumping
-            }
+            // fix stuck in the wall while character in air
+            _characterController.stepOffset = _movementCtx.IsGrounded ? _characterControllerStepOffset : 0;
 
             _characterController.Move(_movementCtx.Velocity * Time.deltaTime);
             if (TryUpdateRotation(cameraRelativeQuaternion, moveDirection, _lookDirection, out var rotation))
