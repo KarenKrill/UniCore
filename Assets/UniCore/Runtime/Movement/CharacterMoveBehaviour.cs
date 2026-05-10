@@ -78,7 +78,6 @@ namespace KarenKrill.UniCore.Movement
                 _movementCtx.Velocity = new(0, _verticalSpeed, 0);
             }
             _movementCtx.Position = _characterController.transform.position;
-            var wasGrounded = _movementCtx.IsGrounded;
 
             if (TryGetAbility<SlopeSlideMovement>(out var slopeSlideAbility))
             {
@@ -94,19 +93,6 @@ namespace KarenKrill.UniCore.Movement
             }
 
             _verticalSpeed = _movementCtx.Velocity.y;
-            if (wasGrounded != _movementCtx.IsGrounded)
-            {
-                if (_movementCtx.IsGrounded)
-                {
-                    _lastGroundedTime = Time.time;
-                    _movementCtx.IsGroundedCoyote = true;
-                }
-                else
-                {
-                    _lastGroundedTime = null;
-                    _movementCtx.IsGroundedCoyote = false;
-                }
-            }
 
             // Check on falling
             if (_movementCtx.IsGroundedCoyote)
@@ -192,13 +178,12 @@ namespace KarenKrill.UniCore.Movement
         [SerializeReference, SerializeInterface]
         private List<IMoveAbility> _abilities = new();
 
-        private readonly MovementContext _movementCtx = new(Vector3.zero, Vector3.zero, true, true, true);
+        private readonly MovementContext _movementCtx = new(Vector3.zero, Vector3.zero, isGroundStable: true);
 
         private Vector3 _moveDirection = Vector3.zero;
         private Vector3 _lookDirection = Vector2.zero;
         private float _verticalSpeed;
         private float _characterControllerStepOffset;
-        private float? _lastGroundedTime;
 
         private bool TryGetAbility<T>([NotNullWhen(true)] out T ability) where T : IMoveAbility
         {
@@ -243,11 +228,7 @@ namespace KarenKrill.UniCore.Movement
         private void UpdateGroundState(MovementContext moveContext)
         {
             moveContext.IsGrounded = _characterController.isGrounded;
-            if (moveContext.IsGrounded)
-            {
-                _lastGroundedTime = Time.time;
-            }
-            moveContext.IsGroundedCoyote = Time.time - _lastGroundedTime <= _coyoteTime;
+            moveContext.CoyoteTime = _coyoteTime;
         }
     }
 }
