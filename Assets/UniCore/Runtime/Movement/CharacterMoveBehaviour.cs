@@ -52,12 +52,7 @@ namespace KarenKrill.UniCore.Movement
         }
         protected virtual void Update()
         {
-            _movementCtx.IsGrounded = _characterController.isGrounded;
-            if (_movementCtx.IsGrounded)
-            {
-                _lastGroundedTime = Time.time;
-            }
-            _movementCtx.IsGroundedCoyote = Time.time - _lastGroundedTime <= _coyoteTime;
+            UpdateGroundState(_movementCtx);
 
             var cameraRelativeQuaternion = Quaternion.AngleAxis(_cameraTransform.rotation.eulerAngles.y, Vector3.up);
             var direction = cameraRelativeQuaternion * _moveDirection;
@@ -240,6 +235,16 @@ namespace KarenKrill.UniCore.Movement
                 _animator.SetBool(IsMovingHash.Value, direction != Vector3.zero);
                 _animator.SetBool(IsLookingHash.Value, _lookDirection != Vector3.zero);
             }
+        }
+
+        private void UpdateGroundState(MovementContext moveContext)
+        {
+            moveContext.IsGrounded = _characterController.isGrounded;
+            if (moveContext.IsGrounded)
+            {
+                _lastGroundedTime = Time.time;
+            }
+            moveContext.IsGroundedCoyote = Time.time - _lastGroundedTime <= _coyoteTime;
         }
     }
 }
