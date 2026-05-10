@@ -55,22 +55,22 @@ namespace KarenKrill.UniCore.Movement
             UpdateGroundState(_movementCtx);
 
             var cameraRelativeQuaternion = Quaternion.AngleAxis(_cameraTransform.rotation.eulerAngles.y, Vector3.up);
-            var direction = cameraRelativeQuaternion * _moveDirection;
-            var directionMagnitude = direction.magnitude;
-            if (directionMagnitude > 1)
+            var moveDirection = cameraRelativeQuaternion * _moveDirection;
+            var moveIntensity = moveDirection.magnitude;
+            if (moveIntensity > 1)
             {
-                direction.Normalize();
-                directionMagnitude = SpeedModifier;
+                moveDirection.Normalize();
+                moveIntensity = SpeedModifier;
             }
             else
             {
-                directionMagnitude = Mathf.Clamp(directionMagnitude, 0, SpeedModifier);
+                moveIntensity *= SpeedModifier;
             }
             if (!_useRootMotion)
             {
                 var maxSpeed = _movementCtx.IsGrounded ? _maxSpeed : _maxInAirSpeed;
-                float speed = directionMagnitude * maxSpeed;
-                var inputVelocity = speed * direction;
+                float speed = moveIntensity * maxSpeed;
+                var inputVelocity = speed * moveDirection;
                 _movementCtx.Velocity = new(inputVelocity.x, _verticalSpeed, inputVelocity.z);
             }
             else
@@ -119,7 +119,7 @@ namespace KarenKrill.UniCore.Movement
             }
 
             _characterController.Move(_movementCtx.Velocity * Time.deltaTime);
-            if (TryUpdateRotation(cameraRelativeQuaternion, direction, _lookDirection, out var rotation))
+            if (TryUpdateRotation(cameraRelativeQuaternion, moveDirection, _lookDirection, out var rotation))
             {
                 _characterController.transform.rotation = rotation.Value;
             }
@@ -136,7 +136,7 @@ namespace KarenKrill.UniCore.Movement
                 _verticalSpeed = Mathf.Clamp(_verticalSpeed, -_maxFallSpeed, _maxFallSpeed);
             }
 
-            UpdateAnimationsIfExists(direction, directionMagnitude);
+            UpdateAnimationsIfExists(moveDirection, moveIntensity);
         }
 
         protected virtual void OnAnimatorMove()
@@ -223,12 +223,12 @@ namespace KarenKrill.UniCore.Movement
             return rotation is not null;
         }
 
-        private void UpdateAnimationsIfExists(Vector3 direction, float directionMagnitude)
+        private void UpdateAnimationsIfExists(Vector3 direction, float moveIntensity)
         {
             if (_animator != null)
             {
                 var isStableGrounded = _movementCtx.IsGrounded && _movementCtx.IsGroundStable;
-                _animator.SetFloat(InputMagnitudeHash.Value, directionMagnitude, 0.5f, Time.deltaTime);
+                _animator.SetFloat(InputMagnitudeHash.Value, moveIntensity, 0.5f, Time.deltaTime);
                 _animator.SetBool(IsGroundedHash.Value, isStableGrounded);
                 _animator.SetBool(IsJumpingHash.Value, IsPulsedUp);
                 _animator.SetBool(IsFallingHash.Value, !isStableGrounded);
