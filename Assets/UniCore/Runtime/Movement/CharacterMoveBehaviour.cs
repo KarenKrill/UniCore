@@ -138,14 +138,7 @@ namespace KarenKrill.UniCore.Movement
                 float gravityAcceleration = Mathf.Abs(Physics.gravity.y) * _gravityMultiplier * _gravityModifier;
                 var deltaSpeed = gravityAcceleration * Time.deltaTime;
                 _verticalSpeed -= deltaSpeed;
-                if (_verticalSpeed > 0)
-                {
-                    _verticalSpeed = Mathf.Min(_verticalSpeed, _maxFallSpeed);
-                }
-                else
-                {
-                    _verticalSpeed = Mathf.Max(_verticalSpeed, -_maxFallSpeed);
-                }
+                _verticalSpeed = Mathf.Clamp(_verticalSpeed, -_maxFallSpeed, _maxFallSpeed);
             }
 
             UpdateAnimationsIfExists(direction, directionMagnitude);
