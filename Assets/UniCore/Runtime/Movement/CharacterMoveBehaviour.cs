@@ -92,8 +92,6 @@ namespace KarenKrill.UniCore.Movement
                 }
             }
 
-            _verticalSpeed = _movementCtx.Velocity.y;
-
             // Check on falling
             if (_movementCtx.IsGroundedCoyote)
             {
@@ -110,17 +108,7 @@ namespace KarenKrill.UniCore.Movement
                 _characterController.transform.rotation = rotation.Value;
             }
 
-            if (_movementCtx.IsGrounded && _movementCtx.IsGroundStable)
-            {
-                _verticalSpeed = -2f; // to prevent isGrounded false positives
-            }
-            else if (!_movementCtx.IsGrounded)
-            {
-                float gravityAcceleration = Mathf.Abs(Physics.gravity.y) * _gravityMultiplier * _gravityModifier;
-                var deltaSpeed = gravityAcceleration * Time.deltaTime;
-                _verticalSpeed -= deltaSpeed;
-                _verticalSpeed = Mathf.Clamp(_verticalSpeed, -_maxFallSpeed, _maxFallSpeed);
-            }
+            ApplyGravity(_movementCtx);
 
             UpdateAnimationsIfExists(moveIntensity,
                 isMoving: moveDirection != Vector3.zero,
@@ -212,6 +200,28 @@ namespace KarenKrill.UniCore.Movement
             return rotation is not null;
         }
 
+        private void UpdateGroundState(MovementContext moveContext)
+        {
+            moveContext.IsGrounded = _characterController.isGrounded;
+            moveContext.CoyoteTime = _coyoteTime;
+        }
+
+        private void ApplyGravity(MovementContext moveCtx)
+        {
+            _verticalSpeed = moveCtx.Velocity.y;
+            if (moveCtx.IsGrounded && moveCtx.IsGroundStable)
+            {
+                _verticalSpeed = -2f; // to prevent isGrounded false positives
+            }
+            else if (!moveCtx.IsGrounded)
+            {
+                float gravityAcceleration = Mathf.Abs(Physics.gravity.y) * _gravityMultiplier * _gravityModifier;
+                var deltaSpeed = gravityAcceleration * Time.deltaTime;
+                _verticalSpeed -= deltaSpeed;
+                _verticalSpeed = Mathf.Clamp(_verticalSpeed, -_maxFallSpeed, _maxFallSpeed);
+            }
+        }
+
         private void UpdateAnimationsIfExists(float moveIntensity, bool isMoving, bool isLooking, bool isJumping, bool isGrounded)
         {
             if (_animator != null)
@@ -221,14 +231,8 @@ namespace KarenKrill.UniCore.Movement
                 _animator.SetBool(IsFallingHash.Value, !isGrounded);
                 _animator.SetBool(IsJumpingHash.Value, isJumping);
                 _animator.SetBool(IsMovingHash.Value, isMoving);
-                _animator.SetBool(IsLookingHash.Value,isLooking);
+                _animator.SetBool(IsLookingHash.Value, isLooking);
             }
-        }
-
-        private void UpdateGroundState(MovementContext moveContext)
-        {
-            moveContext.IsGrounded = _characterController.isGrounded;
-            moveContext.CoyoteTime = _coyoteTime;
         }
     }
 }
