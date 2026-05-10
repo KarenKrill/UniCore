@@ -136,7 +136,11 @@ namespace KarenKrill.UniCore.Movement
                 _verticalSpeed = Mathf.Clamp(_verticalSpeed, -_maxFallSpeed, _maxFallSpeed);
             }
 
-            UpdateAnimationsIfExists(moveDirection, moveIntensity);
+            UpdateAnimationsIfExists(moveIntensity,
+                isMoving: moveDirection != Vector3.zero,
+                isLooking: _lookDirection != Vector3.zero,
+                isJumping: IsPulsedUp,
+                isGrounded: _movementCtx.IsGrounded && _movementCtx.IsGroundStable);
         }
 
         protected virtual void OnAnimatorMove()
@@ -223,17 +227,16 @@ namespace KarenKrill.UniCore.Movement
             return rotation is not null;
         }
 
-        private void UpdateAnimationsIfExists(Vector3 direction, float moveIntensity)
+        private void UpdateAnimationsIfExists(float moveIntensity, bool isMoving, bool isLooking, bool isJumping, bool isGrounded)
         {
             if (_animator != null)
             {
-                var isStableGrounded = _movementCtx.IsGrounded && _movementCtx.IsGroundStable;
                 _animator.SetFloat(InputMagnitudeHash.Value, moveIntensity, 0.5f, Time.deltaTime);
-                _animator.SetBool(IsGroundedHash.Value, isStableGrounded);
-                _animator.SetBool(IsJumpingHash.Value, IsPulsedUp);
-                _animator.SetBool(IsFallingHash.Value, !isStableGrounded);
-                _animator.SetBool(IsMovingHash.Value, direction != Vector3.zero);
-                _animator.SetBool(IsLookingHash.Value, _lookDirection != Vector3.zero);
+                _animator.SetBool(IsGroundedHash.Value, isGrounded);
+                _animator.SetBool(IsFallingHash.Value, !isGrounded);
+                _animator.SetBool(IsJumpingHash.Value, isJumping);
+                _animator.SetBool(IsMovingHash.Value, isMoving);
+                _animator.SetBool(IsLookingHash.Value,isLooking);
             }
         }
 
