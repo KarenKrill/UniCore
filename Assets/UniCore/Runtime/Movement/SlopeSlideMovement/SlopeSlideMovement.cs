@@ -21,7 +21,7 @@ namespace KarenKrill.UniCore.Movement
 
         public SlopeSlideMovement()
         {
-            _options = new(MinSlidingSlopeAngleDefault, FrictionDefault, BrakingFrictionDefault, Physics.gravity.y, MaxDistanceToSlopeDefault);
+            _options = new(MinSlidingSlopeAngleDefault, FrictionDefault, BrakingFrictionDefault, MaxDistanceToSlopeDefault);
         }
         public SlopeSlideMovement(SlopeSlideMovementOptions options)
         {
@@ -57,7 +57,7 @@ namespace KarenKrill.UniCore.Movement
                     }
                     if(_state.IsSliding)
                     {
-                        var acceleration = GetSlideAcceleration(angleToSurface, isSlidingAngle);
+                        var acceleration = GetSlideAcceleration(angleToSurface, isSlidingAngle, ctx.Gravity);
                         var deltaSpeed = acceleration * Time.deltaTime;
                         var slideDirection = GetSlideVelocityDirection(rayHit.normal);
                         if (slideDirection != Vector3.zero)
@@ -95,11 +95,11 @@ namespace KarenKrill.UniCore.Movement
             return Physics.RaycastNonAlloc(position, Vector3.down, _downRaycastHits, _options.MaxDistanceToSlope) > 0;
         }
 
-        private float GetSlideAcceleration(float slopeAngle, bool isSlidingAngle)
+        private float GetSlideAcceleration(float slopeAngle, bool isSlidingAngle, float gravity)
         {
             var slopeAngleRad = slopeAngle * Mathf.Deg2Rad;
             var friction = isSlidingAngle ? _options.Friction : _options.BrakingFriction;
-            return -_options.Gravity * (Mathf.Sin(slopeAngleRad) - friction * Mathf.Cos(slopeAngleRad));
+            return -gravity * (Mathf.Sin(slopeAngleRad) - friction * Mathf.Cos(slopeAngleRad));
         }
     }
 }

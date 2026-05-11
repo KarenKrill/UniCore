@@ -7,6 +7,12 @@ namespace KarenKrill.UniCore.Movement
         public Vector3 Position { get; set; }
         public Vector3 Velocity { get; set; }
 
+        /// <summary>Gravity acceleration</summary>
+        /// <remarks>In normal cases, it should be negative</remarks>
+        public float Gravity { get; set; }
+        [Min(0)]
+        public float GravityModifier { get; set; }
+
         public bool IsGrounded
         {
             get => _isGrounded;
@@ -32,10 +38,15 @@ namespace KarenKrill.UniCore.Movement
 
         public bool IsGroundStable { get; set; }
 
-        public MovementContext(Vector3 position, Vector3 velocity, bool isGrounded = false, bool isGroundStable = false, float coyoteTime = .5f, float lastGroundedTime = float.MinValue)
+        public MovementContext(Vector3 position, Vector3 velocity,
+            float gravity, float gravityModifier = 1,
+            bool isGrounded = false, bool isGroundStable = false,
+            float coyoteTime = .5f, float lastGroundedTime = float.MinValue)
         {
             Position = position;
             Velocity = velocity;
+            Gravity = gravity;
+            GravityModifier = gravityModifier;
             _isGrounded = isGrounded;
             _lastGroundedTime = lastGroundedTime;
             IsGroundStable = isGroundStable;

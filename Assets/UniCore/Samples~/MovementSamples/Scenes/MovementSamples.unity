@@ -556,8 +556,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: KarenKrill.UniCore.Movement::KarenKrill.UniCore.Movement.InputCharacterMoveContoller
   _characterMoveBehaviour: {fileID: 654529769}
-  _jumpHeight: 2
-  _jumpButtonGracePeriod: 0.2
 --- !u!114 &654529769
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -578,7 +576,6 @@ MonoBehaviour:
   _maxAngularSpeed: 360
   _maxFallSpeed: 30
   _speedModifier: 1
-  _gravityModifier: 1
   _gravityMultiplier: 1.5
   _coyoteTime: 0.2
   _useRootMotion: 0
@@ -597,12 +594,15 @@ MonoBehaviour:
           <MinSlidingSlopeAngle>k__BackingField: 45
           <Friction>k__BackingField: 0.3
           <BrakingFriction>k__BackingField: 1
-          <Gravity>k__BackingField: -9.81
           <MaxDistanceToSlope>k__BackingField: 2
     - rid: 2522238110598430914
       type: {class: JumpMovement, ns: KarenKrill.UniCore.Movement, asm: KarenKrill.UniCore.Movement}
       data:
         <Enabled>k__BackingField: 1
+        _options:
+          <MaxHeight>k__BackingField: 4
+          <GracePeriod>k__BackingField: 0.2
+          <LongJumpHoldTime>k__BackingField: 0.2
 --- !u!114 &654529770
 MonoBehaviour:
   m_ObjectHideFlags: 0

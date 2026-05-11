@@ -12,21 +12,24 @@ namespace KarenKrill.UniCore.Movement
     {
         /// <summary>Range: [0..1]</summary>
         public float SpeedModifier { get => _speedModifier; set => _speedModifier = value; }
-        /// <summary>Range: [0..1]</summary>
-        public float GravityModifier { get => _gravityModifier; set => _gravityModifier = value; }
-        public bool IsPulsedUp => TryGetAbility<JumpMovement>(out var jumpAbility) && jumpAbility.IsActive;
         public CameraType CameraType { get => _cameraType; set => _cameraType = value; }
 
         public Vector3 MoveDirection { get => _moveDirection; set => _moveDirection = value; }
         public Vector2 LookDirection { get => _lookDirection; set => _lookDirection = value; }
         public IList<IMoveAbility> Abilities => _abilities;
 
-        public void PulseUp(float distance, float gracePeriod)
+        public void Jump()
         {
-            var gravity = Mathf.Abs(Physics.gravity.y) * _gravityMultiplier * _gravityModifier;
             if (TryGetAbility<JumpMovement>(out var jumpMovement))
             {
-                jumpMovement.PulseUp(distance, gracePeriod, gravity);
+                jumpMovement.Jump();
+            }
+        }
+        public void JumpCancel()
+        {
+            if (TryGetAbility<JumpMovement>(out var jumpMovement))
+            {
+                jumpMovement.JumpCancel();
             }
         }
 
@@ -53,6 +56,8 @@ namespace KarenKrill.UniCore.Movement
         protected virtual void Update()
         {
             UpdateGroundState(_movementCtx);
+
+            _movementCtx.Gravity = Physics.gravity.y * _gravityMultiplier;
 
             var cameraRelativeQuaternion = Quaternion.AngleAxis(_cameraTransform.rotation.eulerAngles.y, Vector3.up);
             var moveDirection = cameraRelativeQuaternion * _moveDirection;
@@ -82,7 +87,6 @@ namespace KarenKrill.UniCore.Movement
             if (TryGetAbility<SlopeSlideMovement>(out var slopeSlideAbility))
             {
                 slopeSlideAbility.Options.MinSlidingSlopeAngle = _characterController.slopeLimit;
-                slopeSlideAbility.Options.Gravity = Physics.gravity.y;
             }
             foreach (var ability in _abilities)
             {
@@ -106,7 +110,7 @@ namespace KarenKrill.UniCore.Movement
             UpdateAnimationsIfExists(moveIntensity,
                 isMoving: moveDirection != Vector3.zero,
                 isLooking: _lookDirection != Vector3.zero,
-                isJumping: IsPulsedUp,
+                isJumping: TryGetAbility<JumpMovement>(out var jumpAbility) && jumpAbility.IsActive,
                 isGrounded: _movementCtx.IsGrounded && _movementCtx.IsGroundStable);
         }
 
@@ -142,8 +146,6 @@ namespace KarenKrill.UniCore.Movement
         private float _maxFallSpeed = 100;
         [SerializeField, Range(0, 1)]
         private float _speedModifier = 1f;
-        [SerializeField, Range(0, 1)]
-        private float _gravityModifier = 1f;
         [SerializeField]
         private float _gravityMultiplier = 1.5f;
         [SerializeField]
@@ -159,7 +161,7 @@ namespace KarenKrill.UniCore.Movement
         [SerializeReference, SerializeInterface]
         private List<IMoveAbility> _abilities = new();
 
-        private readonly MovementContext _movementCtx = new(Vector3.zero, Vector3.zero, isGroundStable: true);
+        private readonly MovementContext _movementCtx = new(Vector3.zero, Vector3.zero, Physics.gravity.y, 1, isGroundStable: true);
 
         private Vector3 _moveDirection = Vector3.zero;
         private Vector3 _lookDirection = Vector2.zero;
@@ -208,7 +210,7 @@ namespace KarenKrill.UniCore.Movement
             }
             else if (!moveCtx.IsGrounded)
             {
-                float gravityAcceleration = Mathf.Abs(Physics.gravity.y) * _gravityMultiplier * _gravityModifier;
+                float gravityAcceleration = -moveCtx.Gravity * moveCtx.GravityModifier;
                 var deltaSpeed = gravityAcceleration * Time.deltaTime;
                 _verticalSpeed -= deltaSpeed;
                 _verticalSpeed = Mathf.Clamp(_verticalSpeed, -_maxFallSpeed, _maxFallSpeed);

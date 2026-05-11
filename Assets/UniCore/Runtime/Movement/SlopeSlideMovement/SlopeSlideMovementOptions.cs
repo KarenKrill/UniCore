@@ -24,23 +24,17 @@ namespace KarenKrill.UniCore.Movement
         [field: SerializeField, Range(0, 1)]
         public float BrakingFriction { get; set; }
 
-        /// <summary>Gravity acceleration</summary>
-        /// <remarks>In normal cases, it should be negative</remarks>
-        [field: SerializeField]
-        public float Gravity { get; set; }
-
         /// <summary>
         /// The maximum distance under a character at which the search for an slope surface occurs
         /// </summary>
         [field: SerializeField]
         public float MaxDistanceToSlope { get; set; }
 
-        public SlopeSlideMovementOptions(float slopeLimitDegrees, float friction, float brakingFriction, float gravity, float maxDistanceToSlope)
+        public SlopeSlideMovementOptions(float slopeLimitDegrees, float friction, float brakingFriction, float maxDistanceToSlope)
         {
             MinSlidingSlopeAngle = slopeLimitDegrees;
             Friction = friction;
             BrakingFriction = brakingFriction;
-            Gravity = gravity;
             MaxDistanceToSlope = maxDistanceToSlope;
         }
     }

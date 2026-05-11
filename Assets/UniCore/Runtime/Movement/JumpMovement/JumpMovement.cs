@@ -7,45 +7,72 @@ namespace KarenKrill.UniCore.Movement
     [Serializable]
     public class JumpMovement : IMoveAbility
     {
-        public bool IsActive => _isPulsedUp;
+        public static readonly float JumpHeightDefault = 2;
+        public static readonly float GracePeriodDefault = 0.2f;
+        public static readonly float LongJumpHoldTimeDefault = 0.2f;
+
+        public bool IsActive => _isJumping;
 
         [field: SerializeField]
         public bool Enabled { get; set; } = true;
 
-        public void PulseUp(float distance, float gracePeriod, float gravity)
+        public JumpMovementOptions Options => _options;
+
+        public JumpMovement() { _options = new(JumpHeightDefault, GracePeriodDefault, LongJumpHoldTimeDefault); }
+
+        public JumpMovement(JumpMovementOptions options) { _options = options; }
+
+        public void Jump()
         {
-            _pulseUpDistance = distance;
-            _pulseUpStartTime = Time.time;
-            _pulseUpGracePeriod = gracePeriod;
-            _gravity = gravity;
+            _jumpStartTime = Time.time;
+            _isPowerfulJump = true;
         }
+
+        public void JumpCancel()
+        {
+            if (Time.time - _jumpStartTime <= _options.PowerfulJumpHoldTime)
+            {
+                _isPowerfulJump = false;
+            }
+        }
+
         public void Update(MovementContext ctx)
         {
-            if (Enabled && ctx.IsGroundedCoyote)
+            if (_isJumping)
             {
-                if (ctx.IsGroundStable)
+                if (!ctx.IsGrounded && _isPowerfulJump)
                 {
-                    _isPulsedUp = false;
-                    if (Time.time - _pulseUpStartTime <= _pulseUpGracePeriod) // pulsed up recently
+                    ctx.GravityModifier = _options.WeakJumpIntensity; // reduces gravity resistance to jumping (increases jump power)
+                }
+                else
+                {
+                    ctx.GravityModifier = 1f;
+                    _isJumping = false;
+                }
+            }
+            else if (ctx.IsGroundStable && ctx.IsGroundedCoyote)
+            {
+                if (Time.time - _jumpStartTime <= _options.GracePeriod) // jump requested recently
+                {
+                    _isJumping = true;
+                    ctx.IsGrounded = false;
+                    // Reset last ground time to prevent multiple jumps within Coyote time
+                    ctx.LastGroundedTime = float.MinValue;
+                    var verticalSpeed = Mathf.Sqrt(2 * _options.MaxHeight * Mathf.Abs(ctx.Gravity) * _options.WeakJumpIntensity);
+                    if(ctx.Gravity > 0)
                     {
-                        ctx.IsGrounded = false;
-                        // Reset last ground time to prevent multiple jumps within Coyote time
-                        ctx.LastGroundedTime = float.MinValue;
-                        _isPulsedUp = true;
-                        _pulseUpStartTime = float.MinValue;
-                        var speed = Mathf.Sqrt(2 * _pulseUpDistance * _gravity);
-                        var velocity = new Vector3(ctx.Velocity.x, speed, ctx.Velocity.z);
-                        ctx.Velocity = velocity;
+                        verticalSpeed *= -1;
                     }
+                    ctx.Velocity = new(ctx.Velocity.x, verticalSpeed, ctx.Velocity.z);
                 }
             }
         }
 
-        private bool _isPulsedUp = false;
+        [SerializeField]
+        private JumpMovementOptions _options;
 
-        private float _pulseUpGracePeriod = 0.2f;
-        private float _pulseUpDistance = 2.0f;
-        private float _pulseUpStartTime;
-        private float _gravity;
+        private bool _isJumping = false;
+        private float _jumpStartTime = float.MinValue;
+        private bool _isPowerfulJump = true;
     }
 }

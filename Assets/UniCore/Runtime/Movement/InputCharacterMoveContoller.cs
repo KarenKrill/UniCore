@@ -14,7 +14,6 @@ namespace KarenKrill.UniCore.Movement
         protected void Awake()
         {
             _characterMoveBehaviour.SpeedModifier = 0.5f;
-            _characterMoveBehaviour.GravityModifier = 0.5f;
         }
         protected void OnEnable()
         {
@@ -34,28 +33,12 @@ namespace KarenKrill.UniCore.Movement
         {
             _characterMoveBehaviour.MoveDirection = new Vector3(_playerActionsProvider.LastMoveDelta.x, 0, _playerActionsProvider.LastMoveDelta.y);
             _characterMoveBehaviour.LookDirection = _playerActionsProvider.LastLookDelta;
-            if (_characterMoveBehaviour.IsPulsedUp)
-            {
-                if (!_isJumpPressed) // если короткое нажатие
-                {
-                    _characterMoveBehaviour.GravityModifier = 1f;
-                }
-                else
-                {
-                    _characterMoveBehaviour.GravityModifier = 0.5f; // замедляем прыжок
-                }
-            }
         }
 
         [SerializeField]
         private CharacterMoveBehaviour _characterMoveBehaviour;
-        [SerializeField]
-        private float _jumpHeight = 2.0f;
-        [SerializeField]
-        private float _jumpButtonGracePeriod = 0.2f;
 
         private IBasicPlayerActionsProvider _playerActionsProvider;
-        private bool _isJumpPressed = false;
 
         private void OnRun()
         {
@@ -67,12 +50,11 @@ namespace KarenKrill.UniCore.Movement
         }
         private void OnJump()
         {
-            _characterMoveBehaviour.PulseUp(_jumpHeight, _jumpButtonGracePeriod);
-            _isJumpPressed = true;
+            _characterMoveBehaviour.Jump();
         }
         private void OnJumpCancel()
         {
-            _isJumpPressed = false;
+            _characterMoveBehaviour.JumpCancel();
         }
     }
 }
