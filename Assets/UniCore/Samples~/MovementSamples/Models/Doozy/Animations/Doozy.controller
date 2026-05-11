@@ -194,8 +194,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8f66de9ef8a62c542b09088acfe9657b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::BoredBehaviour
-  TimeUntilBored: 3
-  BoredAnimationsCount: 2
+  _timeUntilBored: 3
+  _boredAnimationsCount: 2
 --- !u!1101 &-1479655440342754514
 AnimatorStateTransition:
   m_ObjectHideFlags: 1
