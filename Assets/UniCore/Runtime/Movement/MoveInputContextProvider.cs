@@ -4,8 +4,10 @@ using KarenKrill.UniCore.Input.Abstractions;
 
 namespace KarenKrill.UniCore.Movement
 {
-    public class InputCharacterMoveContoller : MonoBehaviour
+    public class MoveInputContextProvider : MonoBehaviour
     {
+        public MoveInputContext Context => _moveContext;
+
         public void Initialize(IBasicPlayerActionsProvider playerActionsProvider)
         {
             _playerActionsProvider = playerActionsProvider;
@@ -27,33 +29,30 @@ namespace KarenKrill.UniCore.Movement
         }
         protected void Update()
         {
-            _MoveContext.MoveDelta = _playerActionsProvider.LastMoveDelta;
-            _MoveContext.LookDelta = _playerActionsProvider.LastLookDelta;
+            _moveContext.MoveDelta = _playerActionsProvider.LastMoveDelta;
+            _moveContext.LookDelta = _playerActionsProvider.LastLookDelta;
         }
 
-        private MoveInputContext _MoveContext => _characterMoveBehaviour.MoveInputContext;
-
-        [SerializeField]
-        private CharacterMoveBehaviour _characterMoveBehaviour;
+        private readonly MoveInputContext _moveContext = new();
 
         private IBasicPlayerActionsProvider _playerActionsProvider;
 
         private void OnRun()
         {
-            _MoveContext.IsSprintPressed = true;
+            _moveContext.IsSprintPressed = true;
         }
         private void OnRunCancel()
         {
-            _MoveContext.IsSprintPressed = false;
+            _moveContext.IsSprintPressed = false;
         }
         private void OnJump()
         {
-            _MoveContext.IsJumpPressed = true;
-            _MoveContext.LastJumpStartTime = Time.time;
+            _moveContext.IsJumpPressed = true;
+            _moveContext.LastJumpStartTime = Time.time;
         }
         private void OnJumpCancel()
         {
-            _MoveContext.IsJumpPressed = false;
+            _moveContext.IsJumpPressed = false;
         }
     }
 }

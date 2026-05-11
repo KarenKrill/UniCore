@@ -485,11 +485,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 654529761}
-  - component: {fileID: 654529766}
   - component: {fileID: 654529769}
-  - component: {fileID: 654529767}
-  - component: {fileID: 654529765}
-  - component: {fileID: 654529770}
   m_Layer: 0
   m_Name: Player
   m_TagString: Untagged
@@ -511,51 +507,9 @@ Transform:
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 813824129}
+  - {fileID: 710778676}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &654529765
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 654529757}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: ffb97e70d55fe3d42b821cac4f5f0630, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::InputController
-  _moveActionReference: {fileID: -1680190386980627800, guid: 2b4ca96d331faaa4894640cd5521d6b2, type: 3}
-  _lookActionReference: {fileID: -5630151704836100654, guid: 2b4ca96d331faaa4894640cd5521d6b2, type: 3}
-  _jumpActionReference: {fileID: -2099379676528639254, guid: 2b4ca96d331faaa4894640cd5521d6b2, type: 3}
-  _sprintActionReference: {fileID: -7471211009204490832, guid: 2b4ca96d331faaa4894640cd5521d6b2, type: 3}
---- !u!114 &654529766
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 654529757}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 814ea7cbcd845684ba8643086d448160, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::MoveInputAdapter
-  _inputController: {fileID: 654529765}
-  _inputCharacterMoveContoller: {fileID: 654529767}
---- !u!114 &654529767
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 654529757}
-  m_Enabled: 0
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: af71028bfb5b82a47a11acbed9b6e949, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: KarenKrill.UniCore.Movement::KarenKrill.UniCore.Movement.InputCharacterMoveContoller
-  _characterMoveBehaviour: {fileID: 654529769}
 --- !u!114 &654529769
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -573,13 +527,14 @@ MonoBehaviour:
   _animator: {fileID: 806758365}
   _maxSpeed: 3
   _maxInAirSpeed: 5
+  _walkSpeedModifier: 0.5
   _maxAngularSpeed: 360
   _maxFallSpeed: 30
-  _speedModifier: 1
   _gravityMultiplier: 1.5
   _coyoteTime: 0.2
   _useRootMotion: 0
   _cameraType: 0
+  _moveInputContextProvider: {fileID: 710778672}
   _abilities:
   - rid: 2522238110598430900
   - rid: 2522238110598430914
@@ -602,14 +557,47 @@ MonoBehaviour:
         _options:
           <MaxHeight>k__BackingField: 4
           <GracePeriod>k__BackingField: 0.2
-          <LongJumpHoldTime>k__BackingField: 0.2
---- !u!114 &654529770
+          <PowerfulJumpHoldTime>k__BackingField: 0.2
+          <WeakJumpIntensity>k__BackingField: 0.5
+--- !u!1 &710778671
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 710778676}
+  - component: {fileID: 710778675}
+  - component: {fileID: 710778672}
+  - component: {fileID: 710778674}
+  - component: {fileID: 710778673}
+  m_Layer: 0
+  m_Name: InputProvider
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &710778672
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 654529757}
+  m_GameObject: {fileID: 710778671}
+  m_Enabled: 0
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: af71028bfb5b82a47a11acbed9b6e949, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: KarenKrill.UniCore.Movement::KarenKrill.UniCore.Movement.InputCharacterMoveContoller
+--- !u!114 &710778673
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 710778671}
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 62899f850307741f2a39c98a8b639597, type: 3}
@@ -633,6 +621,51 @@ MonoBehaviour:
   m_DefaultActionMap: Player
   m_SplitScreenIndex: -1
   m_Camera: {fileID: 0}
+--- !u!114 &710778674
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 710778671}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ffb97e70d55fe3d42b821cac4f5f0630, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::InputController
+  _moveActionReference: {fileID: -1680190386980627800, guid: 2b4ca96d331faaa4894640cd5521d6b2, type: 3}
+  _lookActionReference: {fileID: -5630151704836100654, guid: 2b4ca96d331faaa4894640cd5521d6b2, type: 3}
+  _jumpActionReference: {fileID: -2099379676528639254, guid: 2b4ca96d331faaa4894640cd5521d6b2, type: 3}
+  _sprintActionReference: {fileID: -7471211009204490832, guid: 2b4ca96d331faaa4894640cd5521d6b2, type: 3}
+--- !u!114 &710778675
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 710778671}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 814ea7cbcd845684ba8643086d448160, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::MoveInputAdapter
+  _inputController: {fileID: 710778674}
+  _moveInputContextProvider: {fileID: 710778672}
+--- !u!4 &710778676
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 710778671}
+  serializedVersion: 2
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 654529761}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &755896748
 GameObject:
   m_ObjectHideFlags: 0

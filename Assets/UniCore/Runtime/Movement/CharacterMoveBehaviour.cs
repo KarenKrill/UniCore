@@ -12,11 +12,10 @@ namespace KarenKrill.UniCore.Movement
     {
         public CameraType CameraType { get => _cameraType; set => _cameraType = value; }
         public IList<IMoveAbility> Abilities => _abilities;
-        public MoveInputContext MoveInputContext { get; } = new();
 
         protected virtual void Awake()
         {
-            _movementCtx.SetUserContext(MoveInputContext);
+            _movementCtx.SetUserContext(_MoveInputContext);
             if (_cameraTransform == null)
             {
                 _cameraTransform = Camera.main.transform;
@@ -41,8 +40,8 @@ namespace KarenKrill.UniCore.Movement
 
             _movementCtx.Gravity = Physics.gravity.y * _gravityMultiplier;
 
-            _moveDirection = new Vector3(MoveInputContext.MoveDelta.x, 0, MoveInputContext.MoveDelta.y);
-            _lookDirection = MoveInputContext.LookDelta;
+            _moveDirection = new Vector3(_MoveInputContext.MoveDelta.x, 0, _MoveInputContext.MoveDelta.y);
+            _lookDirection = _MoveInputContext.LookDelta;
             var cameraRelativeQuaternion = Quaternion.AngleAxis(_cameraTransform.rotation.eulerAngles.y, Vector3.up);
             var moveDirection = cameraRelativeQuaternion * _moveDirection;
             var moveIntensity = moveDirection.magnitude;
@@ -115,7 +114,9 @@ namespace KarenKrill.UniCore.Movement
         private static readonly Lazy<int> IsGroundedHash = new(() => Animator.StringToHash("IsGrounded"));
         private static readonly Lazy<int> InputMagnitudeHash = new(() => Animator.StringToHash("InputMagnitude"));
 
-        private float _SpeedModifier => MoveInputContext.IsSprintPressed ? 1f : _walkSpeedModifier;
+        private MoveInputContext _MoveInputContext => _moveInputContextProvider.Context;
+        private float _SpeedModifier => _MoveInputContext.IsSprintPressed ? 1f : _walkSpeedModifier;
+
         private readonly MovementContext _movementCtx = new(Vector3.zero, Vector3.zero, Physics.gravity.y, 1, isGroundStable: true);
 
         [SerializeField]
@@ -129,12 +130,10 @@ namespace KarenKrill.UniCore.Movement
         [SerializeField, Range(0, 1)]
         private float _walkSpeedModifier = 0.5f;
         /// <summary>Max angular speed in degrees</summary>
-        [SerializeField]
+        [SerializeField, Range(0, 360)]
         private float _maxAngularSpeed = 360.0f;
         [SerializeField, Min(0)]
         private float _maxFallSpeed = 100;
-        [SerializeField, Range(0, 1)]
-        private float _speedModifier = 1f;
         [SerializeField]
         private float _gravityMultiplier = 1.5f;
         [SerializeField]
@@ -147,6 +146,8 @@ namespace KarenKrill.UniCore.Movement
         /// <remarks>In firs-person look direction is <see cref="_cameraTransform"/> forward, </remarks>
         [SerializeField]
         private CameraType _cameraType = CameraType.FirstPerson;
+        [SerializeField]
+        private MoveInputContextProvider _moveInputContextProvider;
         [SerializeReference, SerializeInterface]
         private List<IMoveAbility> _abilities = new();
 
