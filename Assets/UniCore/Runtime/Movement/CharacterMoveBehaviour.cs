@@ -50,10 +50,10 @@ namespace KarenKrill.UniCore.Movement
 
             _movementCtx.Gravity = Physics.gravity.y * _gravityMultiplier;
 
-            _moveDirection = new Vector3(_moveInputContext.MoveDelta.x, 0, _moveInputContext.MoveDelta.y);
-            _lookDirection = _moveInputContext.LookDelta;
+            var moveDirection = new Vector3(_moveInputContext.MoveDelta.x, 0, _moveInputContext.MoveDelta.y);
+            var lookDirection = _moveInputContext.LookDelta;
             var cameraRelativeQuaternion = Quaternion.AngleAxis(_cameraTransform.rotation.eulerAngles.y, Vector3.up);
-            var moveDirection = cameraRelativeQuaternion * _moveDirection;
+            moveDirection = cameraRelativeQuaternion * moveDirection;
             var moveIntensity = moveDirection.magnitude;
             if (moveIntensity > 1)
             {
@@ -93,7 +93,7 @@ namespace KarenKrill.UniCore.Movement
             _characterController.stepOffset = _movementCtx.IsGrounded ? _characterControllerStepOffset : 0;
 
             _characterController.Move(_movementCtx.Velocity * Time.deltaTime);
-            if (TryUpdateRotation(cameraRelativeQuaternion, moveDirection, _lookDirection, out var rotation))
+            if (TryUpdateRotation(cameraRelativeQuaternion, moveDirection, lookDirection, out var rotation))
             {
                 _characterController.transform.rotation = rotation.Value;
             }
@@ -102,7 +102,7 @@ namespace KarenKrill.UniCore.Movement
 
             UpdateAnimationsIfExists(moveIntensity,
                 isMoving: moveDirection != Vector3.zero,
-                isLooking: _lookDirection != Vector3.zero,
+                isLooking: lookDirection != Vector2.zero,
                 isJumping: TryGetAbility<JumpMovement>(out var jumpAbility) && jumpAbility.IsActive,
                 isGrounded: _movementCtx.IsGrounded && _movementCtx.IsGroundStable);
         }
@@ -163,8 +163,6 @@ namespace KarenKrill.UniCore.Movement
         private List<IMoveAbility> _abilities = new();
 
         private MoveInputContext _moveInputContext;
-        private Vector3 _moveDirection = Vector3.zero;
-        private Vector3 _lookDirection = Vector2.zero;
         private float _verticalSpeed;
         private float _characterControllerStepOffset;
 
