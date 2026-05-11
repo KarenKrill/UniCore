@@ -65,6 +65,11 @@ namespace KarenKrill.UniCore.Movement
             _userContexts[typeof(T)] = context;
         }
 
+        public void SetUserContext(object context)
+        {
+            _userContexts[context.GetType()] = context;
+        }
+
         private readonly Dictionary<Type, object> _userContexts = new();
         private bool _isGrounded = false;
         private float _lastGroundedTime = float.MinValue;

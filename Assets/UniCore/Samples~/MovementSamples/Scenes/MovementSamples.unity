@@ -534,7 +534,9 @@ MonoBehaviour:
   _coyoteTime: 0.2
   _useRootMotion: 0
   _cameraType: 0
-  _moveInputContextProvider: {fileID: 710778672}
+  _contextProviderBehaviours:
+  - {fileID: 710778672}
+  _contextProviders: []
   _abilities:
   - rid: 2522238110598430900
   - rid: 2522238110598430914

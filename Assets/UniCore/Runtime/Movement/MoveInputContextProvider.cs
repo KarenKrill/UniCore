@@ -4,9 +4,10 @@ using KarenKrill.UniCore.Input.Abstractions;
 
 namespace KarenKrill.UniCore.Movement
 {
-    public class MoveInputContextProvider : MonoBehaviour
+    [ProvidesContext(typeof(MoveInputContext))]
+    public class MoveInputContextProvider : MoveContextProviderBehaviour<MoveInputContext>
     {
-        public MoveInputContext Context => _moveContext;
+        public override MoveInputContext TypedContext => _moveContext;
 
         public void Initialize(IBasicPlayerActionsProvider playerActionsProvider)
         {

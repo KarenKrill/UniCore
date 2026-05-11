@@ -5,6 +5,7 @@ using UnityEngine;
 namespace KarenKrill.UniCore.Movement
 {
     [Serializable]
+    [RequiredContext(typeof(MoveInputContext))]
     public class JumpMovement : IMoveAbility
     {
         public static readonly float JumpHeightDefault = 2;

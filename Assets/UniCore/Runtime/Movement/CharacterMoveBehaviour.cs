@@ -12,10 +12,20 @@ namespace KarenKrill.UniCore.Movement
     {
         public CameraType CameraType { get => _cameraType; set => _cameraType = value; }
         public IList<IMoveAbility> Abilities => _abilities;
+        public IEnumerable<IMoveContextProvider> Providers => _contextProviders.Concat(_contextProviderBehaviours);
 
         protected virtual void Awake()
         {
-            _movementCtx.SetUserContext(_MoveInputContext);
+            foreach (var provider in _contextProviderBehaviours)
+            {
+                _movementCtx.SetUserContext(provider.Context);
+            }
+            foreach (var provider in _contextProviders)
+            {
+                _movementCtx.SetUserContext(provider.Context);
+            }
+            _moveInputContext = _movementCtx.GetUserContext<MoveInputContext>();
+
             if (_cameraTransform == null)
             {
                 _cameraTransform = Camera.main.transform;
@@ -40,8 +50,8 @@ namespace KarenKrill.UniCore.Movement
 
             _movementCtx.Gravity = Physics.gravity.y * _gravityMultiplier;
 
-            _moveDirection = new Vector3(_MoveInputContext.MoveDelta.x, 0, _MoveInputContext.MoveDelta.y);
-            _lookDirection = _MoveInputContext.LookDelta;
+            _moveDirection = new Vector3(_moveInputContext.MoveDelta.x, 0, _moveInputContext.MoveDelta.y);
+            _lookDirection = _moveInputContext.LookDelta;
             var cameraRelativeQuaternion = Quaternion.AngleAxis(_cameraTransform.rotation.eulerAngles.y, Vector3.up);
             var moveDirection = cameraRelativeQuaternion * _moveDirection;
             var moveIntensity = moveDirection.magnitude;
@@ -114,8 +124,7 @@ namespace KarenKrill.UniCore.Movement
         private static readonly Lazy<int> IsGroundedHash = new(() => Animator.StringToHash("IsGrounded"));
         private static readonly Lazy<int> InputMagnitudeHash = new(() => Animator.StringToHash("InputMagnitude"));
 
-        private MoveInputContext _MoveInputContext => _moveInputContextProvider.Context;
-        private float _SpeedModifier => _MoveInputContext.IsSprintPressed ? 1f : _walkSpeedModifier;
+        private float _SpeedModifier => _moveInputContext.IsSprintPressed ? 1f : _walkSpeedModifier;
 
         private readonly MovementContext _movementCtx = new(Vector3.zero, Vector3.zero, Physics.gravity.y, 1, isGroundStable: true);
 
@@ -147,10 +156,13 @@ namespace KarenKrill.UniCore.Movement
         [SerializeField]
         private CameraType _cameraType = CameraType.FirstPerson;
         [SerializeField]
-        private MoveInputContextProvider _moveInputContextProvider;
+        private List<MoveContextProviderBehaviour> _contextProviderBehaviours = new();
+        [SerializeReference, SerializeInterface]
+        private List<IMoveContextProvider> _contextProviders = new();
         [SerializeReference, SerializeInterface]
         private List<IMoveAbility> _abilities = new();
 
+        private MoveInputContext _moveInputContext;
         private Vector3 _moveDirection = Vector3.zero;
         private Vector3 _lookDirection = Vector2.zero;
         private float _verticalSpeed;
