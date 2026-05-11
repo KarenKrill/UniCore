@@ -1,4 +1,6 @@
-﻿using UnityEngine;
+﻿using System;
+using System.Collections.Generic;
+using UnityEngine;
 
 namespace KarenKrill.UniCore.Movement
 {
@@ -53,6 +55,17 @@ namespace KarenKrill.UniCore.Movement
             CoyoteTime = coyoteTime;
         }
 
+        public T GetUserContext<T>()
+        {
+            return (T)_userContexts[typeof(T)];
+        }
+
+        public void SetUserContext<T>(T context)
+        {
+            _userContexts[typeof(T)] = context;
+        }
+
+        private readonly Dictionary<Type, object> _userContexts = new();
         private bool _isGrounded = false;
         private float _lastGroundedTime = float.MinValue;
     }

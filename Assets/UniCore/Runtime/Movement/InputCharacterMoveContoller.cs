@@ -11,10 +11,6 @@ namespace KarenKrill.UniCore.Movement
             _playerActionsProvider = playerActionsProvider;
         }
 
-        protected void Awake()
-        {
-            _characterMoveBehaviour.SpeedModifier = 0.5f;
-        }
         protected void OnEnable()
         {
             _playerActionsProvider.Sprint += OnRun;
@@ -31,9 +27,11 @@ namespace KarenKrill.UniCore.Movement
         }
         protected void Update()
         {
-            _characterMoveBehaviour.MoveDirection = new Vector3(_playerActionsProvider.LastMoveDelta.x, 0, _playerActionsProvider.LastMoveDelta.y);
-            _characterMoveBehaviour.LookDirection = _playerActionsProvider.LastLookDelta;
+            _MoveContext.MoveDelta = _playerActionsProvider.LastMoveDelta;
+            _MoveContext.LookDelta = _playerActionsProvider.LastLookDelta;
         }
+
+        private MoveInputContext _MoveContext => _characterMoveBehaviour.MoveInputContext;
 
         [SerializeField]
         private CharacterMoveBehaviour _characterMoveBehaviour;
@@ -42,19 +40,20 @@ namespace KarenKrill.UniCore.Movement
 
         private void OnRun()
         {
-            _characterMoveBehaviour.SpeedModifier = 1f;
+            _MoveContext.IsSprintPressed = true;
         }
         private void OnRunCancel()
         {
-            _characterMoveBehaviour.SpeedModifier = 0.5f;
+            _MoveContext.IsSprintPressed = false;
         }
         private void OnJump()
         {
-            _characterMoveBehaviour.Jump();
+            _MoveContext.IsJumpPressed = true;
+            _MoveContext.LastJumpStartTime = Time.time;
         }
         private void OnJumpCancel()
         {
-            _characterMoveBehaviour.JumpCancel();
+            _MoveContext.IsJumpPressed = false;
         }
     }
 }

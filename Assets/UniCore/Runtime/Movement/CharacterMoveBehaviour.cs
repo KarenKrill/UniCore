@@ -10,31 +10,13 @@ namespace KarenKrill.UniCore.Movement
     [Serializable]
     public class CharacterMoveBehaviour : MonoBehaviour
     {
-        /// <summary>Range: [0..1]</summary>
-        public float SpeedModifier { get => _speedModifier; set => _speedModifier = value; }
         public CameraType CameraType { get => _cameraType; set => _cameraType = value; }
-
-        public Vector3 MoveDirection { get => _moveDirection; set => _moveDirection = value; }
-        public Vector2 LookDirection { get => _lookDirection; set => _lookDirection = value; }
         public IList<IMoveAbility> Abilities => _abilities;
-
-        public void Jump()
-        {
-            if (TryGetAbility<JumpMovement>(out var jumpMovement))
-            {
-                jumpMovement.Jump();
-            }
-        }
-        public void JumpCancel()
-        {
-            if (TryGetAbility<JumpMovement>(out var jumpMovement))
-            {
-                jumpMovement.JumpCancel();
-            }
-        }
+        public MoveInputContext MoveInputContext { get; } = new();
 
         protected virtual void Awake()
         {
+            _movementCtx.SetUserContext(MoveInputContext);
             if (_cameraTransform == null)
             {
                 _cameraTransform = Camera.main.transform;
@@ -59,17 +41,19 @@ namespace KarenKrill.UniCore.Movement
 
             _movementCtx.Gravity = Physics.gravity.y * _gravityMultiplier;
 
+            _moveDirection = new Vector3(MoveInputContext.MoveDelta.x, 0, MoveInputContext.MoveDelta.y);
+            _lookDirection = MoveInputContext.LookDelta;
             var cameraRelativeQuaternion = Quaternion.AngleAxis(_cameraTransform.rotation.eulerAngles.y, Vector3.up);
             var moveDirection = cameraRelativeQuaternion * _moveDirection;
             var moveIntensity = moveDirection.magnitude;
             if (moveIntensity > 1)
             {
                 moveDirection.Normalize();
-                moveIntensity = SpeedModifier;
+                moveIntensity = _SpeedModifier;
             }
             else
             {
-                moveIntensity *= SpeedModifier;
+                moveIntensity *= _SpeedModifier;
             }
             if (!_useRootMotion)
             {
@@ -131,6 +115,9 @@ namespace KarenKrill.UniCore.Movement
         private static readonly Lazy<int> IsGroundedHash = new(() => Animator.StringToHash("IsGrounded"));
         private static readonly Lazy<int> InputMagnitudeHash = new(() => Animator.StringToHash("InputMagnitude"));
 
+        private float _SpeedModifier => MoveInputContext.IsSprintPressed ? 1f : _walkSpeedModifier;
+        private readonly MovementContext _movementCtx = new(Vector3.zero, Vector3.zero, Physics.gravity.y, 1, isGroundStable: true);
+
         [SerializeField]
         private CharacterController _characterController;
         [SerializeField]
@@ -139,6 +126,8 @@ namespace KarenKrill.UniCore.Movement
         private Animator _animator = null;
         [SerializeField]
         private float _maxSpeed = 5f, _maxInAirSpeed = 0.5f;
+        [SerializeField, Range(0, 1)]
+        private float _walkSpeedModifier = 0.5f;
         /// <summary>Max angular speed in degrees</summary>
         [SerializeField]
         private float _maxAngularSpeed = 360.0f;
@@ -160,8 +149,6 @@ namespace KarenKrill.UniCore.Movement
         private CameraType _cameraType = CameraType.FirstPerson;
         [SerializeReference, SerializeInterface]
         private List<IMoveAbility> _abilities = new();
-
-        private readonly MovementContext _movementCtx = new(Vector3.zero, Vector3.zero, Physics.gravity.y, 1, isGroundStable: true);
 
         private Vector3 _moveDirection = Vector3.zero;
         private Vector3 _lookDirection = Vector2.zero;

@@ -22,25 +22,13 @@ namespace KarenKrill.UniCore.Movement
 
         public JumpMovement(JumpMovementOptions options) { _options = options; }
 
-        public void Jump()
-        {
-            _jumpStartTime = Time.time;
-            _isPowerfulJump = true;
-        }
-
-        public void JumpCancel()
-        {
-            if (Time.time - _jumpStartTime <= _options.PowerfulJumpHoldTime)
-            {
-                _isPowerfulJump = false;
-            }
-        }
-
         public void Update(MovementContext ctx)
         {
+            var inputCtx = ctx.GetUserContext<MoveInputContext>();
+            var isPowerfulJump = inputCtx.IsJumpPressed || Time.time - inputCtx.LastJumpStartTime > _options.PowerfulJumpHoldTime;
             if (_isJumping)
             {
-                if (!ctx.IsGrounded && _isPowerfulJump)
+                if (!ctx.IsGrounded && isPowerfulJump)
                 {
                     ctx.GravityModifier = _options.WeakJumpIntensity; // reduces gravity resistance to jumping (increases jump power)
                 }
@@ -52,7 +40,7 @@ namespace KarenKrill.UniCore.Movement
             }
             else if (ctx.IsGroundStable && ctx.IsGroundedCoyote)
             {
-                if (Time.time - _jumpStartTime <= _options.GracePeriod) // jump requested recently
+                if (Time.time - inputCtx.LastJumpStartTime <= _options.GracePeriod) // jump requested recently
                 {
                     _isJumping = true;
                     ctx.IsGrounded = false;
@@ -72,7 +60,5 @@ namespace KarenKrill.UniCore.Movement
         private JumpMovementOptions _options;
 
         private bool _isJumping = false;
-        private float _jumpStartTime = float.MinValue;
-        private bool _isPowerfulJump = true;
     }
 }
