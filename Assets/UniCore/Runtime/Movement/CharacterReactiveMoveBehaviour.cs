@@ -23,13 +23,30 @@ namespace KarenKrill.UniCore.Movement
         /// </remarks>
         Flying
     }
-    public enum CameraType
-    {
-        FirstPerson,
-        ThirdPerson
-    }
 
-    public class CharacterMoveBehaviour2 : MonoBehaviour
+    /// <summary>
+    /// Implements event-driven character movement (i.e., with reduced CPU load in the absence of user input):
+    /// <list type="bullet">
+    /// <item>Updates the XZ movement and rotation of the CharacterController based on camera rotation, ground position, and speed modifiers.</item>
+    /// <item>Handles jumps and falls</item>
+    /// </list>
+    /// <br>Character controller's dependencies:</br>
+    /// <list type="bullet">
+    ///     <item>CharacterController.Move - for movement along the XZ axes</item>
+    ///     <item>CharacterController.transform.rotation - to turn</item>
+    ///     <item>CharacterController.isGrounded - to calculate the speed of ascent/descent along the Y axis during a jump/fall</item>
+    ///     <item>CharacterController.enabled - to enable/disable when the component is enabled/disabled</item>
+    /// </list>
+    /// <br>Issues:</br>
+    /// <list type="bullet">
+    ///     <item>The methods work correctly until the environment changes in the absence of input events (for example, the floor moves out from under the character, and the character remains in the air until the player uses Input)</item>
+    ///     <item>Hard-coupling to the Input abstraction (it's better to provide methods for rotating/moving XYZ at a certain speed)</item>
+    ///     <item>Jumping/falling is the responsibility of other classes (higher classes or extensions)</item>
+    ///     <item>Switching on/off is the responsibility of higher classes</item>
+    /// </list>
+    /// </summary>
+    [Obsolete("The class contains too many issues, so it is not recommended to use it until refactoring")]
+    public class CharacterReactiveMoveBehaviour : MonoBehaviour
     {
         public void Initialize(IBasicPlayerActionsProvider playerActionsProvider)
         {
@@ -242,7 +259,7 @@ namespace KarenKrill.UniCore.Movement
             private Vector3 _vector;
             private bool _isDirty;
 
-            private bool FloatEpsilonNotEquals(float a, float b) => Mathf.Abs(Mathf.Abs(a) - Mathf.Abs(b)) > Mathf.Epsilon;
+            private bool FloatEpsilonNotEquals(float a, float b) => Mathf.Abs(a - b) > Mathf.Epsilon;
         }
     }
 }
