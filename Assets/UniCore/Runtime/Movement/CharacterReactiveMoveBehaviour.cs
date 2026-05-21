@@ -23,21 +23,30 @@ namespace KarenKrill.UniCore.Movement
         /// </remarks>
         Flying
     }
+
     /// <summary>
-    /// Реализует:
-    /// 1. Обновляет движение XZ и поворот CharacterController-а с учётом: поворота камеры, нахождения на земле, модификаторов скорости
-    /// 2. Обрабатывает прыжки/падения
-    /// Использует:
-    /// CharacterController.Move - передвинуть по XZ
-    /// CharacterController.transform.rotation - повернуть
-    /// CharacterController.isGrounded - рассчитать высоту Y подъёма/спуска при прыжке/падении
-    /// CharacterController.enabled - включить/выключен когда включают/выключают CharacterMoveBehaviour2
+    /// Implements event-driven character movement (i.e., with reduced CPU load in the absence of user input):
+    /// <list type="bullet">
+    /// <item>Updates the XZ movement and rotation of the CharacterController based on camera rotation, ground position, and speed modifiers.</item>
+    /// <item>Handles jumps and falls</item>
+    /// </list>
+    /// <br>Character controller's dependencies:</br>
+    /// <list type="bullet">
+    ///     <item>CharacterController.Move - for movement along the XZ axes</item>
+    ///     <item>CharacterController.transform.rotation - to turn</item>
+    ///     <item>CharacterController.isGrounded - to calculate the speed of ascent/descent along the Y axis during a jump/fall</item>
+    ///     <item>CharacterController.enabled - to enable/disable when the component is enabled/disabled</item>
+    /// </list>
+    /// <br>Issues:</br>
+    /// <list type="bullet">
+    ///     <item>The methods work correctly until the environment changes in the absence of input events (for example, the floor moves out from under the character, and the character remains in the air until the player uses Input)</item>
+    ///     <item>Hard-coupling to the Input abstraction (it's better to provide methods for rotating/moving XYZ at a certain speed)</item>
+    ///     <item>Jumping/falling is the responsibility of other classes (higher classes or extensions)</item>
+    ///     <item>Switching on/off is the responsibility of higher classes</item>
+    /// </list>
     /// </summary>
-    /// TODO: разлепить с вводом пользователя, предоставить методы поворота/движения XYZ с определённой скоростью
-    /// Прыжки/падения должны быть реализованы классом выше как механика поверх этой механики или как расширение
-    /// Включения/выключение тоже обязанность вышестоящих классов
-    /// Инпут соединяется в верних классах. Нужно добавить CharMoveInputController со ссылками на InputActions
-    public class CharacterMoveBehaviour2 : MonoBehaviour
+    [Obsolete("The class contains too many issues, so it is not recommended to use it until refactoring")]
+    public class CharacterReactiveMoveBehaviour : MonoBehaviour
     {
         public void Initialize(IBasicPlayerActionsProvider playerActionsProvider)
         {
